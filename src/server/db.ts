@@ -1,14 +1,13 @@
-﻿import { Pool, type PoolClient } from "pg";
-import { databaseUrl } from "./env";
+import { Pool, type PoolClient } from "pg";
+import { poolConfig } from "./env";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __empleatechPool__: Pool | undefined;
 }
 
 export function getPool(): Pool {
   if (!globalThis.__empleatechPool__) {
-    globalThis.__empleatechPool__ = new Pool({ connectionString: databaseUrl() });
+    globalThis.__empleatechPool__ = new Pool(poolConfig());
   }
   return globalThis.__empleatechPool__;
 }
@@ -27,4 +26,3 @@ export async function withTransaction<T>(fn: (client: PoolClient) => Promise<T>)
     client.release();
   }
 }
-

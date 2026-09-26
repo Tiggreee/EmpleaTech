@@ -1,16 +1,16 @@
-﻿services:
+services:
   postgres:
     image: postgres:16
     container_name: empleatech-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: empleatech_mvp
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-empleatech_dev_only_local}
+      POSTGRES_DB: ${POSTGRES_DB:-empleatech_mvp}
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d empleatech_mvp"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-empleatech_mvp}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -19,4 +19,3 @@
 
 volumes:
   empleatech_pgdata:
-

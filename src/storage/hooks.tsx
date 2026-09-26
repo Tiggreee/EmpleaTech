@@ -54,8 +54,9 @@ function estaVacio(estado: EstadoApp): boolean {
 }
 
 export function DatosProvider({ children }: { children: ReactNode }) {
-  const [perfil, setPerfil] = useState(PERFIL_VACIO);
-  const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
+  const [semillaLocal] = useState(() => normalizar(leerEstadoLocal()));
+  const [perfil, setPerfil] = useState(semillaLocal.perfil);
+  const [postulaciones, setPostulaciones] = useState<Postulacion[]>(semillaLocal.postulaciones);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,18 +96,13 @@ export function DatosProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let activo = true;
-    const semilla = normalizar(leerEstadoLocal());
-    if (!estaVacio(semilla)) {
-      setPerfil(semilla.perfil);
-      setPostulaciones(semilla.postulaciones);
-    }
 
     void (async () => {
       try {
         const remoto = await leerServidor();
         if (!activo) return;
-        if (estaVacio(remoto) && !estaVacio(semilla)) {
-          const migrado = await escribirServidor(semilla);
+        if (estaVacio(remoto) && !estaVacio(semillaLocal)) {
+          const migrado = await escribirServidor(semillaLocal);
           if (!activo) return;
           aplicarEstado(migrado);
         } else {
@@ -124,7 +120,7 @@ export function DatosProvider({ children }: { children: ReactNode }) {
     return () => {
       activo = false;
     };
-  }, [aplicarEstado]);
+  }, [aplicarEstado, semillaLocal]);
 
   const valor = useMemo<ContextoDatos>(() => ({
     perfil,
@@ -147,4 +143,3 @@ export function useDatosApp(): ContextoDatos {
 
 export const usePerfil = () => useDatosApp().perfil;
 export const usePostulaciones = () => useDatosApp().postulaciones;
-

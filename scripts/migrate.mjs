@@ -1,4 +1,4 @@
-﻿import fs from "node:fs/promises";
+import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -8,10 +8,32 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, "..");
 const migrationsDir = path.join(root, "migrations");
-const databaseUrl = process.env.DATABASE_URL?.trim() || "postgres://postgres:postgres@127.0.0.1:5432/empleatech_mvp";
-const pool = new pg.Pool({ connectionString: databaseUrl });
+
+async function cargarEntornoLocal() {
+  const envPath = path.join(root, ".env");
+  try {
+    const raw = await fs.readFile(envPath, "utf8");
+    for (const line of raw.split(/\r?\n/)) {
+      const cleaned = line.trim();
+      if (!cleaned || cleaned.startsWith("#")) continue;
+      const eq = cleaned.indexOf("=");
+      if (eq <= 0) continue;
+      const key = cleaned.slice(0, eq).trim();
+      const value = cleaned.slice(eq + 1).trim();
+      if (!(key in process.env)) process.env[key] = value;
+    }
+  } catch (error) {
+    if (!(error && typeof error === "object" && "code" in error && error.code === "ENOENT")) throw error;
+  }
+}
 
 async function main() {
+  await cargarEntornoLocal();
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  if (!databaseUrl) {
+    throw new Error("Falta DATABASE_URL. Crea tu .env local a partir de .env.example antes de migrar.");
+  }
+  const pool = new pg.Pool({ connectionString: databaseUrl });
   const client = await pool.connect();
   try {
     await client.query("begin");
@@ -51,15 +73,11 @@ async function main() {
     throw error;
   } finally {
     client.release();
+    await pool.end();
   }
 }
 
-main()
-  .catch((error) => {
-    console.error(error instanceof Error ? error.message : error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await pool.end();
-  });
-
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exitCode = 1;
+});

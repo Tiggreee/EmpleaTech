@@ -1,0 +1,36 @@
+﻿# All crawlers (including AI: varios crawlers especializados)
+User-agent: *
+Disallow: /profile
+Disallow: /dashboard
+Disallow: /tracker
+Disallow: /matches
+Disallow: /documents
+Disallow: /builder
+Disallow: /honorscarolina
+Disallow: /marshall
+Disallow: /pathrise
+Disallow: /rtc
+Disallow: /ucsc
+Disallow: /uncucs
+Disallow: /uw
+Disallow: /maintenance
+Disallow: /recruiter
+Disallow: /new-builder
+Disallow: /jobs/v2
+Disallow: /cover-letter
+Disallow: /question-answer
+Disallow: /network
+Disallow: /scout/*
+Disallow: /refer/*
+Disallow: /jobs/click/*
+Disallow: /test/*
+Disallow: /sso/*
+Allow: /
+
+# Host
+Host: https://simplify.jobs
+
+# Sitemap location
+Sitemap: https://simplify.jobs/sitemap.xml
+Sitemap: https://help.simplify.jobs/sitemap.xml
+

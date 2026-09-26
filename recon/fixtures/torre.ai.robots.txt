@@ -1,0 +1,43 @@
+User-agent: facebookexternalhit
+Allow: /s/
+
+User-agent: *
+Allow: /$
+Allow: /sub/
+Allow: /search/people$
+Allow: /search/jobs$
+Allow: /*/search/people$
+Allow: /*/search/jobs$
+
+Disallow: /s/
+
+Disallow: /search/people-skill?*
+Disallow: /*/search/people-skill?*
+Disallow: /search/people?*
+Disallow: /*/search/people?*
+Disallow: /search/jobs?*
+Disallow: /*/search/jobs?*
+Disallow: /login
+
+Disallow: /messenger
+Disallow: /app/*
+Disallow: /app
+Disallow: /*/messenger
+Disallow: /messenger/*
+Disallow: /*/messenger/*
+Disallow: /jobalerts
+Disallow: /jobalerts/*
+Disallow: /*/jobalerts
+Disallow: /*/jobalerts/*
+Disallow: /*/conversations
+Disallow: /*/conversations/*
+
+Disallow: /postings/list/open
+Disallow: /postings/list/drafts
+Disallow: /postings/list/closed
+Disallow: /postings/applications
+
+Disallow: /api/
+
+User-agent: barkrowler
+Disallow: /

@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+:root {
+  --fondo: #05070f;
+  --superficie: rgba(255, 255, 255, 0.04);
+  --borde: rgba(255, 255, 255, 0.1);
+  --texto: #eaf0ff;
+  --tenue: #9aa7c7;
+  --cian: #22d3ee;
+  --violeta: #8b5cf6;
+  --ok: #34d399;
+  --aviso: #fbbf24;
+  --riesgo: #fb7185;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-fondo: var(--fondo);
+  --color-texto: var(--texto);
+  --color-tenue: var(--tenue);
+  --color-cian: var(--cian);
+  --color-violeta: var(--violeta);
+  --color-ok: var(--ok);
+  --color-aviso: var(--aviso);
+  --color-riesgo: var(--riesgo);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background:
+    radial-gradient(60rem 40rem at 85% -10%, rgba(139, 92, 246, 0.22), transparent 60%),
+    radial-gradient(50rem 36rem at -10% 0%, rgba(34, 211, 238, 0.14), transparent 60%),
+    var(--fondo);
+  background-attachment: fixed;
+  color: var(--texto);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.vidrio {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 1rem;
+  backdrop-filter: blur(6px);
+}
+
+.gradiente-texto {
+  background: linear-gradient(100deg, var(--cian), var(--violeta));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: linear-gradient(100deg, var(--cian), var(--violeta));
+  color: #05070f;
+  transition: filter 0.15s, transform 0.15s;
+}
+.boton:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+.boton:disabled { opacity: 0.4; cursor: not-allowed; }
+.boton-sec {
+  background: var(--superficie);
+  color: var(--texto);
+  border: 1px solid var(--borde);
+}
+
+.campo {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--borde);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.6rem 0.8rem;
+  font-size: 0.875rem;
+  color: var(--texto);
+}
+.campo::placeholder { color: #6b7799; }
+.campo:focus-visible, .boton:focus-visible, a:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--cian);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

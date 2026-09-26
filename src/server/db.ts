@@ -1,0 +1,30 @@
+﻿import { Pool, type PoolClient } from "pg";
+import { databaseUrl } from "./env";
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __empleatechPool__: Pool | undefined;
+}
+
+export function getPool(): Pool {
+  if (!globalThis.__empleatechPool__) {
+    globalThis.__empleatechPool__ = new Pool({ connectionString: databaseUrl() });
+  }
+  return globalThis.__empleatechPool__;
+}
+
+export async function withTransaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await getPool().connect();
+  try {
+    await client.query("begin");
+    const result = await fn(client);
+    await client.query("commit");
+    return result;
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+

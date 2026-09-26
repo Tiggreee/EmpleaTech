@@ -33,14 +33,14 @@ async function leerPayload(request: Request): Promise<Partial<EstadoPersistido>>
   const raw = await request.text();
   const bytes = new TextEncoder().encode(raw).length;
   if (bytes > MAX_BYTES_ESTADO) {
-    throw new HttpError(413, `El estado supera el l?mite de ${(MAX_BYTES_ESTADO / 1024).toFixed(0)} KB.`);
+    throw new HttpError(413, `El estado supera el límite de ${(MAX_BYTES_ESTADO / 1024).toFixed(0)} KB.`);
   }
 
   let body: unknown;
   try {
     body = raw ? JSON.parse(raw) : {};
   } catch {
-    throw new HttpError(400, "JSON inv?lido.");
+    throw new HttpError(400, "JSON inválido.");
   }
 
   if (!body || typeof body !== "object" || Array.isArray(body)) {

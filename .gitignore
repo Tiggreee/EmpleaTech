@@ -18,3 +18,4 @@ playwright-report/
 *.pem
 !.env.example
 
+dev.log

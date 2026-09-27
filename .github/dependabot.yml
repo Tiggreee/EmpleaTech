@@ -1,3 +1,5 @@
+# Reviso dependencias una vez al mes, todo agrupado en un solo PR por ecosistema.
+# Nada de ruido semanal ni PRs sueltos por cada paquete.
 version: 2
 updates:
   - package-ecosystem: "npm"

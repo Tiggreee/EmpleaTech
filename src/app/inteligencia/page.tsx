@@ -1,7 +1,7 @@
 ﻿import { APP_NAME } from "@/config/app";
 import { ETIQUETA_VALOR, FILAS, PENDIENTES, type Valor } from "@/content/inteligencia";
 
-export const metadata = { title: `Inteligencia — ${APP_NAME}` };
+export const metadata = { title: "Inteligencia" };
 
 const CLASE: Record<Valor, string> = {
   si: "bg-ok/15 text-ok",

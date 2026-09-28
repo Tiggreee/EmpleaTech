@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { RESPUESTAS_VACIAS, sanitizarRespuestas } from "../perfil/respuestas";
-import { buscarVacantes, coincidePalabras, deduplicar, ordenar, pasaFiltros, puntuar } from "./busqueda";
+import { buscarVacantes, coincidePalabras, deduplicar, huellaPuntaje, ordenar, pasaFiltros, puntuar } from "./busqueda";
 import { INFO_FUENTES, type Consulta, type ContextoFuente, type FuenteVacantes } from "./fuentes";
 import { paisesDeTexto } from "./paises";
 import { atsDeUrl, claveDuplicado, crearVacante, htmlATexto, modalidadDeTexto, salarioDeTexto, type Vacante } from "./vacante";
@@ -189,5 +189,34 @@ describe("casos encontrados con datos reales", () => {
     const deAgregador = puntuar(v({ ...vieja, fuente: "remotive" }), cv, RESPUESTAS_VACIAS, AHORA);
     expect(deTablero.prioridad.factores.join(" ")).not.toMatch(/puede estar cerrada/);
     expect(deAgregador.prioridad.factores.join(" ")).toMatch(/puede estar cerrada/);
+  });
+});
+
+describe("señales de nivel e idioma", () => {
+  const CV = "Backend con Node.js, PostgreSQL y Docker.";
+  const EN = "We are looking for a backend engineer with Node.js and PostgreSQL experience to join our team and build our platform.";
+
+  it("puesto senior con pocos años y puesto de entrada con muchos", () => {
+    const junior = sanitizarRespuestas({ aniosExperiencia: 2 });
+    const f1 = puntuar(v({ titulo: "Senior Backend Engineer" }), CV, junior, AHORA).prioridad.factores.join(" ");
+    expect(f1).toMatch(/Pide nivel senior y tienes 2 años/);
+    const experto = sanitizarRespuestas({ aniosExperiencia: 8 });
+    const f2 = puntuar(v({ titulo: "Junior Backend Developer" }), CV, experto, AHORA).prioridad.factores.join(" ");
+    expect(f2).toMatch(/puesto de entrada y tienes 8 años/);
+  });
+
+  it("vacante en inglés con inglés básico baja mucho; con avanzado no cambia", () => {
+    const basico = puntuar(v({ descripcion: EN }), CV, sanitizarRespuestas({ nivelIngles: "basico" }), AHORA);
+    const avanzado = puntuar(v({ descripcion: EN }), CV, sanitizarRespuestas({ nivelIngles: "avanzado" }), AHORA);
+    expect(basico.prioridad.factores.join(" ")).toMatch(/inglés básico \(−20\)/);
+    expect((avanzado.prioridad.valor ?? 0) - (basico.prioridad.valor ?? 0)).toBe(20);
+  });
+
+  it("la huella cambia si cambian el CV o las respuestas", () => {
+    const cv = { id: "a", actualizadoEn: "2026-09-28T00:00:00.000Z" };
+    const r = sanitizarRespuestas({ nivelIngles: "avanzado" });
+    expect(huellaPuntaje(cv, r)).toBe(huellaPuntaje(cv, sanitizarRespuestas({ nivelIngles: "avanzado" })));
+    expect(huellaPuntaje(cv, r)).not.toBe(huellaPuntaje(cv, sanitizarRespuestas({ nivelIngles: "basico" })));
+    expect(huellaPuntaje(cv, r)).not.toBe(huellaPuntaje({ ...cv, actualizadoEn: "2026-09-29T00:00:00.000Z" }, r));
   });
 });

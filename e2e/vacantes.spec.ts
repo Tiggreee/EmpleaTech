@@ -67,3 +67,21 @@ test.describe("Vacantes", () => {
     await expect(page.getByText("Senior Backend Developer (Node.js)", { exact: true })).toBeVisible();
   });
 });
+
+test("si cambias tus respuestas, las vacantes se vuelven a puntuar solas", async ({ page }) => {
+  await guardarCv(page);
+  await configurarYBuscar(page);
+  const wizeline = page.getByRole("article", { name: /Wizeline/ });
+  await wizeline.getByText("Por qué esta prioridad").click();
+  await expect(wizeline.getByText(/Pide nivel senior/)).toHaveCount(0);
+
+  await page.goto("/perfil");
+  await page.getByLabel("Años de experiencia").fill("2");
+  await page.getByRole("button", { name: "Guardar respuestas" }).click();
+  await expect(page.getByText("Respuestas guardadas.")).toBeVisible();
+
+  await page.goto("/vacantes");
+  const otra = page.getByRole("article", { name: /Wizeline/ });
+  await otra.getByText("Por qué esta prioridad").click();
+  await expect(otra.getByText("Pide nivel senior y tienes 2 años de experiencia (−10)")).toBeVisible();
+});

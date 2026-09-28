@@ -1,6 +1,6 @@
 import { analizar } from "../analisis/analizador";
 import { resumir, type ResumenAnalisis } from "../analisis/resumen";
-import { prep } from "../analisis/texto";
+import { detectarIdioma, prep } from "../analisis/texto";
 import { ETIQUETAS, type Respuestas } from "../perfil/respuestas";
 import { detectarAlertas } from "../radar/radar";
 import { prioridadDeResumen, type Prioridad } from "../seguimiento/prioridad";
@@ -97,6 +97,22 @@ export function deduplicar(vacantes: Vacante[]): Vacante[] {
 // ---------------------------------------------------------------------------------------------------------------
 // Puntaje
 
+const NIVEL_ALTO = /\b(senior|sr|staff|principal|lead|l[ií]der|head|architect|arquitect[oa])\b/;
+const NIVEL_ENTRADA = /\b(junior|jr|intern|internship|trainee|practicante|becari[oa]|entry level|entry-level)\b/;
+
+/**
+ * Identifica con qué CV y respuestas se calculó un puntaje: si cambian, las vacantes guardadas se vuelven a puntuar.
+ * FNV-1a de 32 bits: basta para detectar cambios, no es criptográfico.
+ */
+export function huellaPuntaje(cv: { id: string; actualizadoEn: string }, respuestas: Respuestas): string {
+  let h = 0x811c9dc5;
+  for (const c of JSON.stringify(respuestas)) {
+    h ^= c.charCodeAt(0);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return `${cv.id}|${cv.actualizadoEn}|${h.toString(16)}`;
+}
+
 function textoParaAnalizar(v: Vacante): string {
   return `${v.titulo}\n${v.etiquetas.length ? `Requisitos: ${v.etiquetas.join(", ")}\n` : ""}${v.descripcion}`;
 }
@@ -123,6 +139,27 @@ export function puntuar(v: Vacante, cvTexto: string, respuestas: Respuestas, aho
     valor -= 10;
     factores.push(`Paga hasta ${v.salario.max.toLocaleString("es-MX")} ${v.salario.moneda}, por debajo de tu pretensión (−10)`);
   }
+  // Nivel del puesto contra tus años de experiencia: los filtros automáticos descartan fuera de rango.
+  const anios = respuestas.aniosExperiencia;
+  const tituloPlegado = prep(v.titulo).folded;
+  if (anios !== undefined && NIVEL_ALTO.test(tituloPlegado) && anios < 4) {
+    valor -= 10;
+    factores.push(`Pide nivel senior y tienes ${anios} año${anios === 1 ? "" : "s"} de experiencia (−10)`);
+  } else if (anios !== undefined && NIVEL_ENTRADA.test(tituloPlegado) && anios >= 4) {
+    valor -= 5;
+    factores.push(`Es un puesto de entrada y tienes ${anios} años de experiencia (−5)`);
+  }
+  // Idioma de la vacante contra tu nivel de inglés.
+  if (detectarIdioma(prep(`${v.titulo}\n${v.descripcion}`).folded) === "en") {
+    if (respuestas.nivelIngles === "basico") {
+      valor -= 20;
+      factores.push("La vacante está en inglés y marcaste inglés básico (−20)");
+    } else if (respuestas.nivelIngles === "intermedio") {
+      valor -= 5;
+      factores.push("La vacante está en inglés y marcaste inglés intermedio (−5)");
+    }
+  }
+
   const dias = v.publicadaEn ? Math.floor((ahora.getTime() - new Date(v.publicadaEn).getTime()) / 86_400_000) : 0;
   // En el tablero oficial de la empresa solo aparece lo que sigue abierto, aunque se haya publicado hace meses.
   const tableroOficial = v.fuente === "greenhouse" || v.fuente === "lever" || v.fuente === "ashby";

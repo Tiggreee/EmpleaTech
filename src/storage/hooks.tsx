@@ -54,9 +54,10 @@ function estaVacio(estado: EstadoApp): boolean {
 }
 
 export function DatosProvider({ children }: { children: ReactNode }) {
-  const [semillaLocal] = useState(() => normalizar(leerEstadoLocal()));
-  const [perfil, setPerfil] = useState(semillaLocal.perfil);
-  const [postulaciones, setPostulaciones] = useState<Postulacion[]>(semillaLocal.postulaciones);
+  // El primer render debe coincidir con el HTML del servidor (que no ve el navegador): arranca vacío y la copia local
+  // se aplica justo después de montar.
+  const [perfil, setPerfil] = useState(PERFIL_VACIO);
+  const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -98,6 +99,11 @@ export function DatosProvider({ children }: { children: ReactNode }) {
     let activo = true;
 
     void (async () => {
+      const semillaLocal = normalizar(leerEstadoLocal());
+      if (!estaVacio(semillaLocal)) {
+        setPerfil(semillaLocal.perfil);
+        setPostulaciones(semillaLocal.postulaciones);
+      }
       try {
         const remoto = await leerServidor();
         if (!activo) return;
@@ -120,7 +126,7 @@ export function DatosProvider({ children }: { children: ReactNode }) {
     return () => {
       activo = false;
     };
-  }, [aplicarEstado, semillaLocal]);
+  }, [aplicarEstado]);
 
   const valor = useMemo<ContextoDatos>(() => ({
     perfil,

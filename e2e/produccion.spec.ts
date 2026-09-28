@@ -40,6 +40,8 @@ test.describe("cabeceras de seguridad", () => {
     await page.locator("input[type=file]").setInputFiles({ name: "cv.docx", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", buffer: crearDocx(["Ana Torres", "Node.js y PostgreSQL con más de cinco años de experiencia."]) });
     await expect(page.getByText(/Leído cv\.docx/)).toBeVisible();
     await page.getByRole("button", { name: "Guardar CV" }).click();
+    // Con el CV ya en la copia local, la siguiente carga no debe tener errores de hidratación.
+    await expect(page.getByText("CV guardado en tu base local.")).toBeVisible();
 
     await page.goto("/analizar");
     await page.getByLabel("Texto de la oferta").fill(OFERTA_TEXTO);

@@ -30,6 +30,7 @@ export const FILAS: Fila[] = [
   { capacidad: "Prioridad explicable para elegir a cuáles postular", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: src/core/seguimiento/prioridad.ts.` },
   { capacidad: "Ofertas y CV en español e inglés", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: alias ES/EN y detección de idioma.` },
   { capacidad: "Búsqueda en varias plataformas con duplicados fusionados", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: 12 fuentes en src/server/fuentes (APIs públicas y tableros oficiales de empresas), elegibles hasta 5.` },
+  { capacidad: "CV y carta a la medida por vacante, sin inventar experiencia", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: src/core/documentos (reordena y destaca solo lo que está en el perfil).` },
   { capacidad: "Detector de ofertas riesgosas", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: src/core/radar + tests.` },
   { capacidad: "Sello humano antes de marcar una postulación", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: src/core/seguimiento (marcarPostulada).` },
   { capacidad: "Instalable como app", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: manifest + service worker.` },

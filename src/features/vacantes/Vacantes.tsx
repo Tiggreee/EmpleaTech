@@ -165,6 +165,11 @@ function TarjetaVacante({ item, ahora, onGuardar, onDescartar }: { item: Guardad
       <div className="mt-4 flex flex-wrap items-center gap-2">
         {onGuardar && <Boton pequeno disabled={ocupado} onClick={accion(onGuardar)}>Guardar en postulaciones</Boton>}
         {onDescartar && <Boton pequeno variante="secundario" disabled={ocupado} onClick={accion(onDescartar)}>Descartar</Boton>}
+        {item.estado !== "descartada" && (
+          <EnlaceBoton pequeno variante="secundario" href={`/preparar?vacante=${encodeURIComponent(v.id)}`}>
+            Preparar CV y carta
+          </EnlaceBoton>
+        )}
         <a className="ml-auto text-xs text-cian underline-offset-2 hover:underline" href={v.url} target="_blank" rel="noopener noreferrer">
           Ver en {nombreFuente} ↗
         </a>

@@ -105,6 +105,17 @@ export async function listarVacantes(estado: EstadoVacante = "nueva", limite = 2
   });
 }
 
+export async function obtenerVacante(id: string): Promise<VacanteGuardada> {
+  const { rows } = await getPool().query(
+    `select datos_json, resumen_json, prioridad_json, estado, encontrada_en from vacantes where profile_id = $1 and id = $2`,
+    [APP_PROFILE_ID, id.slice(0, 300)],
+  );
+  const r = rows[0];
+  const resumen = r && sanitizarResumen(r.resumen_json);
+  if (!r || !resumen) throw new ErrorVacantes(404, "Vacante no encontrada.");
+  return { vacante: r.datos_json as Vacante, resumen, prioridad: prioridadSegura(r.prioridad_json), estado: r.estado as EstadoVacante, encontradaEn: new Date(r.encontrada_en).toISOString() };
+}
+
 export async function contarVacantes(): Promise<Record<EstadoVacante, number>> {
   const { rows } = await getPool().query(`select estado, count(*)::int as n from vacantes where profile_id = $1 group by estado`, [APP_PROFILE_ID]);
   const out: Record<EstadoVacante, number> = { nueva: 0, guardada: 0, descartada: 0 };

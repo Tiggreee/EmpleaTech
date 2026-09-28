@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ETIQUETA_RECOMENDACION, type Prioridad } from "@/core/seguimiento/prioridad";
 import { DIAS_SEGUIMIENTO, cambiarEstado, editarNotas, eliminar, marcarPostulada, programarSeguimiento, siguienteAccion, urlSegura, type Postulacion } from "@/core/seguimiento/seguimiento";
 import { TONO_RECOMENDACION } from "@/features/analizar/ResultadoAnalisis";
-import { Boton, Insignia } from "@/ui/ui";
+import { Boton, EnlaceBoton, Insignia } from "@/ui/ui";
 import SelloHumano from "./SelloHumano";
 
 const TONO_ACCION = { ok: "text-tenue", atencion: "text-aviso", urgente: "text-riesgo font-medium" } as const;
@@ -53,6 +53,9 @@ export default function TarjetaPostulacion({ p, prioridad, ahora, aplicar }: Pro
             <summary className="cursor-pointer text-cian">Por qué</summary>
             <ul className="mt-1 list-disc space-y-0.5 pl-4">{prioridad.factores.map((f) => <li key={f}>{f}</li>)}</ul>
           </details>
+          <EnlaceBoton pequeno variante="secundario" className="mt-2" href={`/preparar?postulacion=${encodeURIComponent(p.id)}`}>
+            Preparar CV y carta
+          </EnlaceBoton>
         </div>
       )}
 

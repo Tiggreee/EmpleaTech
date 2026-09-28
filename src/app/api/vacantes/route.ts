@@ -9,6 +9,7 @@ import {
   guardarPreferencias,
   leerPreferencias,
   listarVacantes,
+  obtenerVacante,
   type EstadoVacante,
 } from "@/server/vacantes";
 
@@ -22,7 +23,10 @@ function fuentesDisponibles() {
 
 export async function GET(request: Request) {
   try {
-    const estado = new URL(request.url).searchParams.get("estado") ?? "nueva";
+    const params = new URL(request.url).searchParams;
+    const id = params.get("id");
+    if (id) return ok({ vacante: await obtenerVacante(id) });
+    const estado = params.get("estado") ?? "nueva";
     if (!ESTADOS_VACANTE.includes(estado as EstadoVacante)) throw new ErrorHttp(400, "Estado inválido.");
     const [vacantes, conteo, preferencias, consultas] = await Promise.all([
       listarVacantes(estado as EstadoVacante),

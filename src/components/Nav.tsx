@@ -6,6 +6,7 @@ import { APP_NAME } from "@/config/app";
 
 const ENLACES = [
   { href: "/panel", texto: "Panel" },
+  { href: "/hoy", texto: "Hoy" },
   { href: "/vacantes", texto: "Vacantes" },
   { href: "/analizar", texto: "Analizar" },
   { href: "/cv", texto: "Mi CV" },

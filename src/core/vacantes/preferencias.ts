@@ -1,5 +1,6 @@
 import type { PerfilJson } from "../perfil/estructurado";
 import type { Respuestas } from "../perfil/respuestas";
+import { AJUSTES_COLA_INICIALES } from "./cola";
 import { MAX_FUENTES_ACTIVAS, type Consulta, type FuenteDeEmpresas } from "./fuentes";
 import { FUENTES, type FuenteId } from "./vacante";
 
@@ -11,6 +12,9 @@ export interface PreferenciasBusqueda {
   empresas: Record<FuenteDeEmpresas, string[]>;
   /** Tope de vacantes nuevas por plataforma en cada búsqueda. */
   maxPorFuente: number;
+  /** Cola diaria: cuántas postulaciones al día y cuántas como máximo de una misma plataforma. */
+  metaDiaria: number;
+  topePorFuente: number;
 }
 
 /** Arranque sensato para LatAm: dos fuentes de la región, dos remotas y los tableros oficiales de empresas. */
@@ -32,13 +36,17 @@ export function sanitizarPreferencias(crudo: unknown, porDefecto: PreferenciasBu
     : porDefecto.fuentes;
   const e = (typeof o.empresas === "object" && o.empresas !== null ? o.empresas : {}) as Record<string, unknown>;
   const tokens = (k: FuenteDeEmpresas) => (Array.isArray(e[k]) ? lista(e[k], 25, 80).map((t) => t.toLowerCase()).filter((t) => TOKEN.test(t)) : porDefecto.empresas[k]);
-  const max = typeof o.maxPorFuente === "number" && Number.isFinite(o.maxPorFuente) ? Math.round(o.maxPorFuente) : porDefecto.maxPorFuente;
+  const entero = (x: unknown, def: number, min: number, maxV: number) =>
+    Math.max(min, Math.min(maxV, typeof x === "number" && Number.isFinite(x) ? Math.round(x) : def));
+  const max = entero(o.maxPorFuente, porDefecto.maxPorFuente, 5, 200);
   return {
     fuentes,
     palabras: Array.isArray(o.palabras) ? lista(o.palabras, 12, 60) : porDefecto.palabras,
     soloRemoto: typeof o.soloRemoto === "boolean" ? o.soloRemoto : porDefecto.soloRemoto,
     empresas: { greenhouse: tokens("greenhouse"), lever: tokens("lever"), ashby: tokens("ashby") },
-    maxPorFuente: Math.max(5, Math.min(200, max)),
+    maxPorFuente: max,
+    metaDiaria: entero(o.metaDiaria, porDefecto.metaDiaria, 1, 100),
+    topePorFuente: entero(o.topePorFuente, porDefecto.topePorFuente, 1, 50),
   };
 }
 
@@ -63,6 +71,8 @@ export function preferenciasIniciales(perfil: PerfilJson | undefined, respuestas
     soloRemoto: respuestas.modalidades.length > 0 && respuestas.modalidades.every((m) => m === "remoto"),
     empresas,
     maxPorFuente: 60,
+    metaDiaria: AJUSTES_COLA_INICIALES.metaDiaria,
+    topePorFuente: AJUSTES_COLA_INICIALES.topePorFuente,
   };
 }
 

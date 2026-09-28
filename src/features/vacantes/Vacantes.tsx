@@ -4,52 +4,19 @@ import { useCallback, useEffect, useState } from "react";
 import { cvActivo } from "@/core/perfil/perfil";
 import { ETIQUETA_RECOMENDACION } from "@/core/seguimiento/prioridad";
 import { analizarOferta, crear } from "@/core/seguimiento/seguimiento";
-import type { ResultadoFuente, VacantePuntuada } from "@/core/vacantes/busqueda";
-import { MAX_FUENTES_ACTIVAS, type FuenteDeEmpresas, type InfoFuente } from "@/core/vacantes/fuentes";
+import type { ResultadoFuente } from "@/core/vacantes/busqueda";
+import { MAX_FUENTES_ACTIVAS, type FuenteDeEmpresas } from "@/core/vacantes/fuentes";
 import type { PreferenciasBusqueda } from "@/core/vacantes/preferencias";
-import type { FuenteId, SalarioVacante } from "@/core/vacantes/vacante";
+import type { FuenteId } from "@/core/vacantes/vacante";
 import { useDatosApp } from "@/storage/hooks";
 import { Aviso, Boton, Encabezado, EnlaceBoton, Insignia, Tarjeta, Vacio, cx, type Tono } from "@/ui/ui";
-
-type Estado = "nueva" | "guardada" | "descartada";
-type Guardada = VacantePuntuada & { estado: Estado; encontradaEn: string };
-type Fuente = InfoFuente & { disponible: boolean };
-
-interface Datos {
-  vacantes: Guardada[];
-  conteo: Record<Estado, number>;
-  preferencias: PreferenciasBusqueda;
-  fuentes: Fuente[];
-}
+import { MODALIDAD, TONO_RECOMENDACION, hace, nombreFuente, pedir, salario, type DatosVacantes as Datos, type EstadoVacante as Estado, type FuenteDisponible as Fuente, type Guardada } from "./cliente";
 
 const PESTANAS: { estado: Estado; texto: string }[] = [
   { estado: "nueva", texto: "Por revisar" },
   { estado: "guardada", texto: "Guardadas" },
   { estado: "descartada", texto: "Descartadas" },
 ];
-const MODALIDAD = { remoto: "Remoto", hibrido: "Híbrido", presencial: "Presencial" } as const;
-const PERIODO = { hora: "/h", mes: "/mes", año: "/año" } as const;
-const TONO_RECOMENDACION: Record<string, Tono> = { postular: "ok", revisar: "cian", descartar: "riesgo", "sin-analisis": "neutro" };
-
-async function pedir<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, { cache: "no-store", ...init, headers: { "Content-Type": "application/json", ...init?.headers } });
-  const body = (await res.json().catch(() => null)) as (T & { error?: string }) | null;
-  if (!res.ok || !body) throw new Error(body?.error ?? "No se pudo completar la operación.");
-  return body;
-}
-
-function salario(s: SalarioVacante | undefined): string | null {
-  if (!s) return null;
-  const f = (n: number) => (n >= 10_000 ? `${Math.round(n / 1000)}k` : n.toLocaleString("es-MX"));
-  const rango = s.min && s.max && s.min !== s.max ? `${f(s.min)}–${f(s.max)}` : f((s.max ?? s.min) as number);
-  return `${rango} ${s.moneda ?? ""}${s.periodo ? ` ${PERIODO[s.periodo]}` : ""}`.trim();
-}
-
-function hace(iso: string | undefined, ahora: number): string | null {
-  if (!iso || !ahora) return null;
-  const dias = Math.floor((ahora - new Date(iso).getTime()) / 86_400_000);
-  return dias <= 0 ? "hoy" : dias === 1 ? "ayer" : `hace ${dias} días`;
-}
 
 function Preferencias({ inicial, fuentes, onGuardar }: { inicial: PreferenciasBusqueda; fuentes: Fuente[]; onGuardar: (p: PreferenciasBusqueda) => Promise<void> }) {
   const [p, setP] = useState(inicial);
@@ -132,7 +99,7 @@ function TarjetaVacante({ item, ahora, onGuardar, onDescartar }: { item: Guardad
     setOcupado(true);
     void fn().finally(() => setOcupado(false));
   };
-  const nombreFuente = v.fuente === "getonboard" ? "Get on Board" : v.fuente.charAt(0).toUpperCase() + v.fuente.slice(1);
+  const fuente = nombreFuente(v.fuente);
   return (
     <article className="vidrio p-5" aria-label={`${v.titulo} en ${v.empresa}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -171,7 +138,7 @@ function TarjetaVacante({ item, ahora, onGuardar, onDescartar }: { item: Guardad
           </EnlaceBoton>
         )}
         <a className="ml-auto text-xs text-cian underline-offset-2 hover:underline" href={v.url} target="_blank" rel="noopener noreferrer">
-          Ver en {nombreFuente} ↗
+          Ver en {fuente} ↗
         </a>
       </div>
     </article>

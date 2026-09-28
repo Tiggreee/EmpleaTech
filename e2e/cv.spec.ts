@@ -1,4 +1,4 @@
-﻿import { expect, test, type Page } from "@playwright/test";
+﻿import { expect, test, type Page } from "./base";
 import { CV_LINEAS, crearDocx, crearPdf, crearPdfEscaneado } from "./archivos";
 
 const alerta = (page: Page) => page.locator("p[role=alert]");

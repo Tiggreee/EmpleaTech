@@ -1,4 +1,4 @@
-﻿import { expect, test, type Page } from "@playwright/test";
+﻿import { expect, test, type Page } from "./base";
 import { OFERTA_TEXTO } from "./archivos";
 
 const CV_TXT = "Ana Torres. 5 años de experiencia con Node.js, Docker y PostgreSQL, APIs REST con TypeScript. Inglés avanzado. Liderazgo de equipos pequeños.";

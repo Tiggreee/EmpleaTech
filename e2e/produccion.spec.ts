@@ -1,4 +1,4 @@
-﻿import { expect, test } from "@playwright/test";
+﻿import { expect, test } from "./base";
 import { CV_LINEAS, OFERTA_TEXTO, crearDocx, crearPdf } from "./archivos";
 
 test.describe("cabeceras de seguridad", () => {

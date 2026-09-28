@@ -22,6 +22,7 @@ export default defineConfig({
     url: `http://localhost:${PUERTO}`,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
-    env: { DATABASE_URL: urlBaseE2e() },
+    // Fuentes de vacantes simuladas: las pruebas no dependen de internet ni gastan el límite de las plataformas.
+    env: { DATABASE_URL: urlBaseE2e(), EMPLEATECH_FUENTES_FALSAS: "1" },
   },
 });

@@ -29,6 +29,7 @@ export const FILAS: Fila[] = [
   { capacidad: "Habilidades transferibles con crédito parcial", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: familias de habilidades en src/core/analisis/habilidades.ts.` },
   { capacidad: "Prioridad explicable para elegir a cuáles postular", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: src/core/seguimiento/prioridad.ts.` },
   { capacidad: "Ofertas y CV en español e inglés", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: alias ES/EN y detección de idioma.` },
+  { capacidad: "Búsqueda en varias plataformas con duplicados fusionados", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: 12 fuentes en src/server/fuentes (APIs públicas y tableros oficiales de empresas), elegibles hasta 5.` },
   { capacidad: "Detector de ofertas riesgosas", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: src/core/radar + tests.` },
   { capacidad: "Sello humano antes de marcar una postulación", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: src/core/seguimiento (marcarPostulada).` },
   { capacidad: "Instalable como app", app: "si", jobright: "sd", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: manifest + service worker.` },
@@ -40,7 +41,6 @@ export const PENDIENTES = [
   "OCR para CV escaneados (hoy se avisa y se pide un PDF con texto seleccionable).",
   "Extensión de navegador para autocompletar formularios como asistencia, nunca envío automático.",
   "Cuentas reales y sincronización entre dispositivos sin perder el enfoque personal del MVP.",
-  "Agregador de vacantes con revisión por fuente antes de implementarlo.",
   "Diccionario de habilidades más amplio y calibrado con ofertas reales de LatAm.",
 ];
 

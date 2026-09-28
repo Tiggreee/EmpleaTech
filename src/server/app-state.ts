@@ -231,14 +231,19 @@ export async function loadState(): Promise<EstadoPersistido> {
 export async function saveState(payload: Partial<EstadoPersistido>): Promise<EstadoPersistido> {
   const estado = normalizarEntrada(payload);
   await withTransaction(async (client) => {
-    await client.query(`delete from profiles where id = $1`, [APP_PROFILE_ID]);
+    // El perfil se actualiza en su lugar (no se borra) para no arrastrar en cascada las tablas que no viajan en este
+    // estado, como las vacantes encontradas. Solo se reemplazan los CV y el tracker, que sí vienen completos.
     await client.query(
       `
         insert into profiles (id, display_name, active_cv_id, respuestas_json, created_at, updated_at)
         values ($1, $2, $3, $4::jsonb, now(), now())
+        on conflict (id) do update set active_cv_id = excluded.active_cv_id, respuestas_json = excluded.respuestas_json, updated_at = now()
       `,
       [APP_PROFILE_ID, APP_PROFILE_NAME, estado.perfil.activoId, JSON.stringify(estado.perfil.respuestas)],
     );
+    await client.query(`delete from tracker_entries where profile_id = $1`, [APP_PROFILE_ID]);
+    await client.query(`delete from job_postings where profile_id = $1`, [APP_PROFILE_ID]);
+    await client.query(`delete from cvs where profile_id = $1`, [APP_PROFILE_ID]);
     await insertarCv(client, estado.perfil);
     const cvMap = new Map(estado.perfil.cvs.map((cv) => [cv.id, cv.texto]));
     for (const postulacion of estado.postulaciones) {

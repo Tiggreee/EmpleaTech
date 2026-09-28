@@ -33,10 +33,18 @@ async function insertarCv(client: PoolClient, perfil: EstadoPerfil) {
   for (const cv of perfil.cvs) {
     await client.query(
       `
-        insert into cvs (id, profile_id, nombre, texto, actualizado_en, created_at, updated_at)
-        values ($1, $2, $3, $4, $5::timestamptz, now(), now())
+        insert into cvs (id, profile_id, nombre, texto, actualizado_en, estructurado_json, estructurado_editado, created_at, updated_at)
+        values ($1, $2, $3, $4, $5::timestamptz, $6::jsonb, $7, now(), now())
       `,
-      [cv.id, APP_PROFILE_ID, cv.nombre, cv.texto, isoSeguro(cv.actualizadoEn)],
+      [
+        cv.id,
+        APP_PROFILE_ID,
+        cv.nombre,
+        cv.texto,
+        isoSeguro(cv.actualizadoEn),
+        cv.estructurado ? JSON.stringify(cv.estructurado) : null,
+        cv.estructuradoEditado === true,
+      ],
     );
   }
 }
@@ -143,12 +151,12 @@ async function insertarPostulacion(client: PoolClient, postulacion: Postulacion,
 export async function loadState(): Promise<EstadoPersistido> {
   const pool = getPool();
   const profileResult = await pool.query(
-    `select active_cv_id from profiles where id = $1 limit 1`,
+    `select active_cv_id, respuestas_json from profiles where id = $1 limit 1`,
     [APP_PROFILE_ID],
   );
   const cvsResult = await pool.query(
     `
-      select id, nombre, texto, actualizado_en
+      select id, nombre, texto, actualizado_en, estructurado_json, estructurado_editado
       from cvs
       where profile_id = $1
       order by created_at asc, nombre asc
@@ -185,11 +193,14 @@ export async function loadState(): Promise<EstadoPersistido> {
 
   const perfil = sanitizarPerfil({
     activoId: profileResult.rows[0]?.active_cv_id ?? null,
+    respuestas: profileResult.rows[0]?.respuestas_json,
     cvs: cvsResult.rows.map((row) => ({
       id: row.id,
       nombre: row.nombre,
       texto: row.texto,
       actualizadoEn: isoSeguro(row.actualizado_en),
+      estructurado: row.estructurado_json ?? undefined,
+      estructuradoEditado: row.estructurado_editado === true,
     })),
   });
 
@@ -223,10 +234,10 @@ export async function saveState(payload: Partial<EstadoPersistido>): Promise<Est
     await client.query(`delete from profiles where id = $1`, [APP_PROFILE_ID]);
     await client.query(
       `
-        insert into profiles (id, display_name, active_cv_id, created_at, updated_at)
-        values ($1, $2, $3, now(), now())
+        insert into profiles (id, display_name, active_cv_id, respuestas_json, created_at, updated_at)
+        values ($1, $2, $3, $4::jsonb, now(), now())
       `,
-      [APP_PROFILE_ID, APP_PROFILE_NAME, estado.perfil.activoId],
+      [APP_PROFILE_ID, APP_PROFILE_NAME, estado.perfil.activoId, JSON.stringify(estado.perfil.respuestas)],
     );
     await insertarCv(client, estado.perfil);
     const cvMap = new Map(estado.perfil.cvs.map((cv) => [cv.id, cv.texto]));

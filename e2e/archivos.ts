@@ -123,3 +123,32 @@ Deseable:
 - Experiencia con Terraform.
 
 Salario: $55,000 MXN mensuales. Prestaciones de ley.`;
+
+/** ODT mínimo válido con un párrafo por línea (las que empiezan con «- » van como lista). */
+export function crearOdt(parrafos: string[]): Buffer {
+  const cuerpo = parrafos
+    .map((p) => (p.startsWith("- ") ? `<text:list><text:list-item><text:p>${xmlEsc(p.slice(2))}</text:p></text:list-item></text:list>` : `<text:p>${xmlEsc(p)}</text:p>`))
+    .join("");
+  const enc = (s: string) => Buffer.from(s, "utf8");
+  return zip([
+    { nombre: "mimetype", datos: enc("application/vnd.oasis.opendocument.text") },
+    { nombre: "META-INF/manifest.xml", datos: enc('<?xml version="1.0" encoding="UTF-8"?><manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2"><manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.text"/><manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/></manifest:manifest>') },
+    { nombre: "content.xml", datos: enc(`<?xml version="1.0" encoding="UTF-8"?><office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" office:version="1.2"><office:body><office:text>${cuerpo}</office:text></office:body></office:document-content>`) },
+  ]);
+}
+
+export const CV_COMPLETO = [
+  "Ana Torres",
+  "Desarrolladora Backend",
+  "Guadalajara, México | ana.torres@correo.mx | +52 33 1234 5678",
+  "Experiencia",
+  "Desarrolladora Backend - Acme Pagos",
+  "Ene 2021 - Presente",
+  "- Diseñé la API de cobros en Node.js con TypeScript.",
+  "Educación",
+  "Universidad de Guadalajara",
+  "Ingeniería en Computación",
+  "2013 - 2017",
+  "Idiomas",
+  "Inglés: avanzado",
+];

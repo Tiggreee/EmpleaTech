@@ -10,7 +10,7 @@ interface Props {
   compacto?: boolean;
 }
 
-export default function SubirCv({ onTexto, etiqueta = "Sube tu CV (PDF, DOCX, TXT o MD)", compacto }: Props) {
+export default function SubirCv({ onTexto, etiqueta = "Sube tu CV (PDF, DOCX, ODT, TXT o MD)", compacto }: Props) {
   const id = useId();
   const [estado, setEstado] = useState<{ tipo: "libre" | "leyendo" | "ok" | "error"; texto?: string; avisos?: string[] }>({ tipo: "libre" });
   const [arrastrando, setArrastrando] = useState(false);
@@ -60,7 +60,7 @@ export default function SubirCv({ onTexto, etiqueta = "Sube tu CV (PDF, DOCX, TX
           id={id}
           type="file"
           className="sr-only"
-          accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
+          accept=".pdf,.docx,.odt,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,text/plain,text/markdown"
           onChange={(e) => {
             const f = e.target.files?.[0];
             e.target.value = "";

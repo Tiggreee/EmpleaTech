@@ -57,7 +57,7 @@ export default function Panel() {
         <section aria-labelledby="empezar" className="mb-10">
           <h2 id="empezar" className="mb-3 font-semibold">Empieza en tres pasos</h2>
           <ol className="space-y-3">
-            <Paso n={1} hecho={Boolean(cv)} titulo="Guarda tu CV" detalle="En PDF, DOCX o texto. Quedará listo para reanálisis y comparación." href="/cv" accion="Subir CV" />
+            <Paso n={1} hecho={Boolean(cv)} titulo="Guarda tu CV" detalle="En PDF, DOCX, ODT o texto. Leemos tu perfil automáticamente." href="/cv" accion="Subir CV" />
             <Paso n={2} hecho={analizadas > 0} titulo="Analiza una oferta" detalle="Verás tu afinidad, tus brechas y si la oferta tiene señales de riesgo." href="/analizar" accion="Analizar" />
             <Paso n={3} hecho={stats.postuladas > 0} titulo="Guarda el avance en tu tracker" detalle="Marca lo que sí enviaste tú y revisa seguimientos desde el panel." href="/postulaciones" accion="Ir a postulaciones" />
           </ol>

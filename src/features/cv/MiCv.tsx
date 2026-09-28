@@ -134,7 +134,7 @@ export default function MiCv() {
 
       {perfil.cvs.length === 0 && !borrador && (
         <Vacio titulo="Aún no guardas ningún CV" accion={<Boton onClick={() => setBorrador({ nombre: "", texto: "" })}>Subir mi CV</Boton>}>
-          Súbelo en PDF, DOCX o texto. Luego quedará disponible para reanalizar ofertas y compararlas con tu historial.
+          Súbelo en PDF, DOCX, ODT o texto. Leemos tu perfil automáticamente y queda listo para analizar ofertas y llenar formularios.
         </Vacio>
       )}
 

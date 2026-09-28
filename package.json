@@ -16,6 +16,7 @@
     "migrate": "node scripts/migrate.mjs"
   },
   "dependencies": {
+    "jszip": "^3.10.2",
     "mammoth": "^1.12.3",
     "next": "16.3.5",
     "pdfjs-dist": "^6.3.289",
@@ -37,4 +38,3 @@
     "vitest": "^5.0.1"
   }
 }
-

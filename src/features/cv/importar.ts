@@ -4,7 +4,7 @@ export const MAX_BYTES = 5 * 1024 * 1024;
 const MAX_PAGINAS = 15;
 const MIN_TEXTO_UTIL = 50;
 
-export type FormatoCv = "pdf" | "docx" | "texto";
+export type FormatoCv = "pdf" | "docx" | "odt" | "texto";
 
 export interface CvExtraido {
   texto: string;
@@ -25,13 +25,48 @@ export function detectarFormato(nombre: string, cabecera: Uint8Array): FormatoCv
   if (empieza(cabecera, [0x25, 0x50, 0x44, 0x46])) return "pdf";
   if (empieza(cabecera, [0x50, 0x4b, 0x03, 0x04])) {
     if (ext === "docx") return "docx";
-    throw new ErrorImportacion("Ese archivo comprimido no es un CV en .docx.");
+    if (ext === "odt") return "odt";
+    throw new ErrorImportacion("Ese archivo comprimido no es un CV en .docx ni .odt.");
   }
   if (empieza(cabecera, [0xd0, 0xcf, 0x11, 0xe0])) {
     throw new ErrorImportacion("Los .doc antiguos no se pueden leer. Guárdalo como .docx o PDF y vuelve a intentarlo.");
   }
   if (["txt", "md", "text", ""].includes(ext)) return "texto";
-  throw new ErrorImportacion(`Formato no compatible (.${ext}). Usa PDF, DOCX, TXT o MD.`);
+  throw new ErrorImportacion(`Formato no compatible (.${ext}). Usa PDF, DOCX, ODT, TXT o MD.`);
+}
+
+const ENTIDADES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+
+/** Texto legible del content.xml de un .odt: un párrafo por línea y las listas como viñetas. */
+export function textoDesdeOdtXml(xml: string): string {
+  const cuerpo = /<office:text[\s>][\s\S]*<\/office:text>/.exec(xml)?.[0] ?? xml;
+  return cuerpo
+    .replace(/<text:line-break\s*\/>/g, "\n")
+    .replace(/<text:tab\s*\/>/g, "\t")
+    .replace(/<text:s(?:\s+text:c="(\d+)")?\s*\/>/g, (_, n: string | undefined) => " ".repeat(Math.min(Number(n ?? 1), 20)))
+    .replace(/<text:list-item(?:\s[^>]*)?>/g, "- ")
+    .replace(/<\/text:(?:p|h)>/g, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e: string) => {
+      if (e[0] !== "#") return ENTIDADES[e.toLowerCase()] ?? m;
+      const cp = e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+      return Number.isFinite(cp) && cp > 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : "";
+    });
+}
+
+async function extraerOdt(buffer: ArrayBuffer): Promise<string> {
+  const JSZip = (await import("jszip")).default;
+  try {
+    const zip = await JSZip.loadAsync(buffer);
+    const tipo = (await zip.file("mimetype")?.async("string"))?.trim();
+    if (tipo !== "application/vnd.oasis.opendocument.text") throw new ErrorImportacion("Ese archivo no es un documento de texto .odt.");
+    const contenido = await zip.file("content.xml")?.async("string");
+    if (!contenido) throw new ErrorImportacion("El .odt no trae contenido.");
+    return textoDesdeOdtXml(contenido);
+  } catch (e) {
+    if (e instanceof ErrorImportacion) throw e;
+    throw new ErrorImportacion("No pudimos leer ese .odt. Puede estar dañado; prueba guardarlo de nuevo.");
+  }
 }
 
 async function extraerPdf(buffer: ArrayBuffer): Promise<{ texto: string; paginas: number; avisos: string[] }> {
@@ -101,6 +136,8 @@ export async function extraerTextoDeArchivo(archivo: File): Promise<CvExtraido> 
     avisos.push("Si tu CV tiene dos columnas, revisa que el texto quedó en orden.");
   } else if (formato === "docx") {
     crudo = await extraerDocx(buffer);
+  } else if (formato === "odt") {
+    crudo = await extraerOdt(buffer);
   } else {
     crudo = new TextDecoder("utf-8").decode(buffer);
   }

@@ -20,7 +20,7 @@ export const ETIQUETA_VALOR: Record<Valor, string> = {
 
 export const FILAS: Fila[] = [
   { capacidad: "Seguimiento de postulaciones", app: "si", jobright: "si", simplify: "si", torre: "sd", fuente: `${APP_NAME}: src/core/seguimiento y src/features/postulaciones. Otros: rutas /jobs/applied (Jobright) y tracker nativo (Simplify) vistas en el recon.` },
-  { capacidad: "Importar CV desde archivo", app: "si", jobright: "si", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: PDF, DOCX y TXT en src/features/cv. Jobright: ruta onboarding-v3/resume-upload vista en el recon.` },
+  { capacidad: "Importar CV desde archivo", app: "si", jobright: "si", simplify: "sd", torre: "sd", fuente: `${APP_NAME}: PDF, DOCX, ODT y TXT en src/features/cv, con perfil estructurado (JSON Resume) en src/core/perfil. Jobright: ruta onboarding-v3/resume-upload vista en el recon.` },
   { capacidad: "Autocompletado en portales de empleo", app: "no", jobright: "si", simplify: "si", torre: "sd", fuente: `Páginas públicas job-autofill (Jobright) y extensión (Simplify). ${APP_NAME}: todavía no.` },
   { capacidad: "IA generativa integrada", app: "no", jobright: "si", simplify: "si", torre: "sd", fuente: `Páginas públicas de IA integrada observadas en el recon. ${APP_NAME} sigue usando lógica determinista local.` },
   { capacidad: "API pública / integración programática", app: "no", jobright: "sd", simplify: "sd", torre: "si", fuente: `Página torre.ai/api observada en el recon. ${APP_NAME} aún no expone una API pública estable.` },

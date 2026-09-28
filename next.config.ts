@@ -22,6 +22,7 @@ const CSP = [
 const nextConfig: NextConfig = {
   turbopack: { root: __dirname },
   poweredByHeader: false,
+  agentRules: false,
   async headers() {
     return [
       {

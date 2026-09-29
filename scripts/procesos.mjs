@@ -32,12 +32,15 @@ function leerLista(salida, separador) {
 
 const normalizar = (s) => s.replace(/\\/g, "/").toLowerCase();
 
+/** Ruta base normalizada. Una ruta absoluta (también de Windows, «D:\x») se respeta tal cual en cualquier sistema. */
+const baseDe = (raiz) => normalizar(/^[a-z]:[\\/]/i.test(raiz) || raiz.startsWith("/") ? raiz : path.resolve(raiz)).replace(/\/+$/, "");
+
 /**
  * De una lista de procesos, los de EmpleaTech en `raiz`: el lanzador (arrancar.mjs) y el servidor (`next start`).
  * Nunca el servidor de desarrollo (`next dev`) ni los comandos de consulta o de detener.
  */
 export function procesosDeEmpleaTech(lista, raiz, excluir = []) {
-  const base = normalizar(path.resolve(raiz));
+  const base = baseDe(raiz);
   return lista
     .filter(({ pid, cmd }) => {
       if (excluir.includes(pid)) return false;
@@ -49,7 +52,7 @@ export function procesosDeEmpleaTech(lista, raiz, excluir = []) {
     .map((p) => p.pid);
 }
 
-export const esLanzador = (cmd, raiz) => normalizar(cmd).includes(`${normalizar(path.resolve(raiz))}/scripts/arrancar.mjs`);
+export const esLanzador = (cmd, raiz) => normalizar(cmd).includes(`${baseDe(raiz)}/scripts/arrancar.mjs`);
 
 /**
  * Cierra un proceso. `conHijos` solo para el servidor de Next: el lanzador pudo haber abierto Docker Desktop y cerrar

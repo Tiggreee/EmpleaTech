@@ -35,17 +35,31 @@ const EN_WORDS = new Set(
 
 export type Idioma = "es" | "en" | "mixto";
 
-export function detectarIdioma(folded: string): Idioma {
+function contarIdioma(folded: string): { es: number; en: number } {
   let es = 0;
   let en = 0;
   for (const w of folded.match(/[a-z]+/g) ?? []) {
     if (ES_WORDS.has(w)) es++;
     if (EN_WORDS.has(w)) en++;
   }
+  return { es, en };
+}
+
+export function detectarIdioma(folded: string): Idioma {
+  const { es, en } = contarIdioma(folded);
   if (es + en < 8) return "mixto";
   if (es > en * 1.25) return "es";
   if (en > es * 1.25) return "en";
   return "mixto";
+}
+
+/**
+ * ¿Una frase suelta está escrita en el otro idioma? detectarIdioma pide varias palabras para opinar; una frase corta
+ * de un CV («Diseñé una API en Node.js») basta con que se incline al otro idioma para no pegarla sin traducir.
+ */
+export function enOtroIdioma(texto: string, idioma: "es" | "en"): boolean {
+  const { es, en } = contarIdioma(prep(texto).folded);
+  return idioma === "en" ? es > en : en > es;
 }
 
 export function recortar(s: string, max = 160): string {

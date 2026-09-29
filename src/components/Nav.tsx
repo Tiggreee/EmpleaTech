@@ -8,6 +8,7 @@ const ENLACES = [
   { href: "/panel", texto: "Panel" },
   { href: "/hoy", texto: "Hoy" },
   { href: "/vacantes", texto: "Vacantes" },
+  { href: "/freelance", texto: "Freelance" },
   { href: "/analizar", texto: "Analizar" },
   { href: "/cv", texto: "Mi CV" },
   { href: "/perfil", texto: "Perfil" },

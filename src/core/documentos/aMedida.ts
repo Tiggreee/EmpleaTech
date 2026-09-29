@@ -1,6 +1,6 @@
 import { analizar } from "../analisis/analizador";
 import { SKILLS, findMentions } from "../analisis/habilidades";
-import { detectarIdioma, prep } from "../analisis/texto";
+import { detectarIdioma, enOtroIdioma, prep } from "../analisis/texto";
 import type { PerfilJson, Trabajo } from "../perfil/estructurado";
 import { fechaDeInicio, type Respuestas } from "../perfil/respuestas";
 
@@ -176,7 +176,7 @@ function carta(p: PerfilJson, o: OfertaParaDocs, c: ContextoCarta): string {
   if (c.cvMismoIdioma) {
     const logros = p.work
       .flatMap((w) => w.highlights.map((h) => ({ h, donde: w.name, r: relevancia(h, c.pesos, c.palabras) })))
-      .filter((x) => x.r > 0.3)
+      .filter((x) => x.r > 0.3 && !enOtroIdioma(x.h, c.idioma))
       .sort((a, b) => b.r - a.r)
       .slice(0, 2);
     if (logros.length) {
@@ -239,7 +239,7 @@ function propuesta(p: PerfilJson, o: OfertaParaDocs, c: ContextoCarta): string {
   if (c.cvMismoIdioma) {
     const logros = p.work
       .flatMap((w) => w.highlights.map((h) => ({ h, donde: w.name, r: relevancia(h, c.pesos, c.palabras) })))
-      .filter((x) => x.r > 0.3)
+      .filter((x) => x.r > 0.3 && !enOtroIdioma(x.h, c.idioma))
       .sort((a, b) => b.r - a.r)
       .slice(0, 2);
     logros.forEach((l, i) =>
@@ -251,7 +251,7 @@ function propuesta(p: PerfilJson, o: OfertaParaDocs, c: ContextoCarta): string {
   }
   const pr = proyectoRelevante(p, c.pesos, c.palabras);
   if (pr) {
-    const detalle = c.cvMismoIdioma && pr.description ? `: ${frase(pr.description)}` : "";
+    const detalle = c.cvMismoIdioma && pr.description && !enOtroIdioma(pr.description, c.idioma) ? `: ${frase(pr.description)}` : "";
     partes.push({ texto: `${es ? "Un proyecto mío parecido" : "A similar project of mine"} — ${pr.name}${detalle}${pr.url ? ` (${pr.url})` : ""}.`, prescindible: 2 });
   }
 

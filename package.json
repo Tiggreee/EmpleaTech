@@ -10,6 +10,7 @@
     "start": "next start -H 127.0.0.1",
     "arrancar": "node scripts/arrancar.mjs",
     "detener": "node scripts/arrancar.mjs --detener",
+    "estado": "node scripts/arrancar.mjs --estado",
     "inicio:instalar": "node scripts/arrancar.mjs --instalar-inicio",
     "inicio:quitar": "node scripts/arrancar.mjs --quitar-inicio",
     "respaldo": "node scripts/respaldo.mjs",

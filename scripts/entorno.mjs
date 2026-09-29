@@ -60,7 +60,7 @@ export function correr(cmd, args, opciones = {}) {
 }
 
 export function contenedorCorriendo(nombre = CONTENEDOR()) {
-  const r = correr("docker", ["inspect", "--format", "{{.State.Running}}", nombre]);
+  const r = correr("docker", ["inspect", "--format", "{{.State.Running}}", nombre], { timeout: 15_000 });
   return r.ok && r.salida === "true";
 }
 

@@ -19,7 +19,8 @@ http://localhost:3000. Si la app se cae, la vuelve a levantar. Registros y respa
 
 | Comando | Qué hace |
 |---|---|
-| `npm run detener` | Detiene la app que corre en segundo plano |
+| `npm run estado` | Dice si está corriendo, qué procesos son y dónde están tus datos |
+| `npm run detener` | Detiene la app (solo sus procesos: nunca cierra Docker) |
 | `npm run inicio:quitar` | Deja de arrancarla al iniciar sesión |
 | `npm run respaldo` | Respaldo inmediato (`--lista` para verlos, `--probar` para restaurar el último en una base temporal y contar filas) |
 | `npm run restaurar -- ultimo` | Reemplaza la base con un respaldo; antes respalda la actual |
@@ -27,6 +28,18 @@ http://localhost:3000. Si la app se cae, la vuelve a levantar. Registros y respa
 Los respaldos son diarios y rotan solos: los 14 más recientes y uno por semana de las 8 anteriores.
 
 Para desarrollar: `npm run dev -- -p 3100` (el 3000 lo usa la app diaria).
+
+### Si Docker Desktop pide «Reset to factory defaults»
+
+**No lo elijas: borra todos los contenedores y volúmenes.** Casi siempre es un cierre a la fuerza que dejó archivos
+de conexión colgados (errores como `remove ...\Docker\run\dockerInference: The file cannot be accessed by the system`).
+Con Docker cerrado («Quit») y `wsl -l -v` mostrando `docker-desktop  Stopped`:
+
+1. Renombra `%LOCALAPPDATA%\Docker\run` y, si el error lo menciona, `%LOCALAPPDATA%\docker-secrets-engine`
+   (Windows no deja borrar esos sockets, pero sí renombrar su carpeta).
+2. Abre Docker Desktop: crea las carpetas limpias y tus contenedores vuelven con sus datos.
+
+Por eso el arranque abre Docker con `start` (no como proceso hijo) y `detener` nunca cierra su árbol de procesos.
 
 ## Seguridad local
 

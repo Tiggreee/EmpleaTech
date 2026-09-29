@@ -6,6 +6,7 @@
  *   npm run arrancar                        en esta ventana (Ctrl+C para detener)
  *   npm run arrancar -- --segundo-plano     sin ventana; registros en <datos>/registros/app.log
  *   npm run detener                         detiene la que corre en segundo plano
+ *   npm run estado                          dice si está corriendo y dónde están tus datos
  *   npm run inicio:instalar                 Windows: que arranque sola al iniciar sesión
  *   npm run inicio:quitar                   deshace lo anterior
  */
@@ -18,6 +19,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { CONTENEDOR, RAIZ, carpetaDatos, cargarEntornoLocal, correr, urlDeBase } from "./entorno.mjs";
+import { detenerProceso, esLanzador, listarProcesosNode, procesosDeEmpleaTech } from "./procesos.mjs";
 import { respaldar } from "./respaldo.mjs";
 
 cargarEntornoLocal();
@@ -52,26 +54,62 @@ function pidVivo(pid) {
   }
 }
 
-function pidRegistrado() {
+function leerPid() {
   try {
     const pid = Number(fs.readFileSync(ARCHIVO_PID, "utf8").trim());
-    return Number.isInteger(pid) && pid > 0 && pidVivo(pid) ? pid : null;
+    return Number.isInteger(pid) && pid > 0 ? pid : null;
   } catch {
     return null;
   }
 }
 
+/** Lanzadores de EmpleaTech vivos en esta carpeta (sin contar este proceso). */
+function lanzadoresVivos() {
+  const lista = listarProcesosNode();
+  const deEmpleaTech = new Set(procesosDeEmpleaTech(lista, RAIZ, [process.pid]));
+  return lista.filter((p) => deEmpleaTech.has(p.pid) && esLanzador(p.cmd, RAIZ)).map((p) => p.pid);
+}
+
+/**
+ * El lanzador que está corriendo, confirmado por su línea de comando. Tras reiniciar, el número guardado puede ser
+ * de otro programa (Windows recicla números): en ese caso se ignora y, si hay un lanzador real, se registra ese.
+ */
+function pidRegistrado() {
+  const guardado = leerPid();
+  const vivos = lanzadoresVivos();
+  if (guardado && vivos.includes(guardado)) return guardado;
+  const real = vivos[0] ?? null;
+  if (real) fs.writeFileSync(ARCHIVO_PID, String(real));
+  return real;
+}
+
 function detener() {
-  const pid = pidRegistrado();
-  if (!pid) {
-    console.log("EmpleaTech no está corriendo en segundo plano.");
+  // Todo lo de EmpleaTech en esta carpeta: el lanzador registrado y cualquier servidor que haya quedado suelto.
+  const lista = listarProcesosNode();
+  const pids = procesosDeEmpleaTech(lista, RAIZ, [process.pid]);
+  if (!pids.length) {
+    fs.rmSync(ARCHIVO_PID, { force: true });
+    console.log("EmpleaTech no está corriendo.");
     return;
   }
-  // En Windows hay que cerrar el árbol completo: el servidor de Next es un proceso hijo.
-  if (process.platform === "win32") correr("taskkill", ["/PID", String(pid), "/T", "/F"]);
-  else process.kill(pid, "SIGTERM");
+  // El lanzador se cierra solo, nunca con su árbol: pudo haber abierto Docker Desktop y cerrarlo a la fuerza lo daña.
+  // El servidor sí con sus hijos (sus propios procesos de Next).
+  const cmdDe = (pid) => lista.find((p) => p.pid === pid)?.cmd ?? "";
+  for (const pid of pids) if (pidVivo(pid)) detenerProceso(pid, { conHijos: !esLanzador(cmdDe(pid), RAIZ) });
+  const siguen = pids.filter(pidVivo);
   fs.rmSync(ARCHIVO_PID, { force: true });
-  console.log("EmpleaTech se detuvo.");
+  if (siguen.length) {
+    console.log(`No pude detener los procesos ${siguen.join(", ")}. Ciérralos desde el Administrador de tareas.`);
+    process.exitCode = 1;
+  } else console.log("EmpleaTech se detuvo.");
+}
+
+function estado() {
+  const pids = procesosDeEmpleaTech(listarProcesosNode(), RAIZ, [process.pid]);
+  const lanzador = pidRegistrado();
+  console.log(pids.length ? `EmpleaTech está corriendo (lanzador ${lanzador ?? "sin registrar"}; procesos ${pids.join(", ")}).` : "EmpleaTech no está corriendo.");
+  console.log(`Arranque al iniciar sesión: ${fs.existsSync(ACCESO_INICIO) ? "activado" : "desactivado"}.`);
+  console.log(`Datos y registros: ${DATOS}`);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -98,30 +136,41 @@ function rutaDockerDesktop() {
   return candidatos.find((c) => fs.existsSync(c));
 }
 
+// Con tiempo límite: si Docker está atorado, `docker info` puede quedarse esperando para siempre.
+const dockerResponde = () => correr("docker", ["info"], { timeout: 15_000 }).ok;
+
+const dockerDesktopAbierto = () =>
+  process.platform === "win32" && /Docker Desktop\.exe/i.test(correr("tasklist", ["/FI", "IMAGENAME eq Docker Desktop.exe", "/FO", "CSV", "/NH"]).salida);
+
 async function asegurarDocker() {
-  if (correr("docker", ["info"]).ok) return;
-  if (process.platform === "win32") {
+  if (dockerResponde()) return;
+  if (dockerDesktopAbierto()) {
+    // Al iniciar sesión Docker Desktop suele venir arrancando por su cuenta: solo hay que esperarlo.
+    log("Docker Desktop está arrancando; lo espero…");
+  } else if (process.platform === "win32") {
     const exe = rutaDockerDesktop();
     if (!exe) throw new Error("Docker no está corriendo y no encontré Docker Desktop. Ábrelo y vuelve a intentar.");
     log("Abriendo Docker Desktop…");
-    spawn(exe, [], { detached: true, stdio: "ignore" }).unref();
+    // Con «start» Docker no queda como proceso hijo de EmpleaTech: detener EmpleaTech jamás debe cerrar Docker a la
+    // fuerza (un cierre así deja sus archivos de conexión colgados y Docker ya no arranca).
+    correr("cmd.exe", ["/d", "/c", "start", '""', `"${exe}"`], { windowsVerbatimArguments: true, timeout: 15_000 });
   } else if (process.platform === "darwin") {
     log("Abriendo Docker Desktop…");
     correr("open", ["-a", "Docker"]);
   }
   for (let i = 0; i < 60; i++) {
     await esperar(3000);
-    if (correr("docker", ["info"]).ok) return;
+    if (dockerResponde()) return;
   }
-  throw new Error("Docker no respondió en 3 minutos.");
+  throw new Error("Docker no respondió en 3 minutos. Si Docker Desktop muestra un error, no elijas «Reset to factory defaults»: borra tus datos.");
 }
 
 async function asegurarBase() {
   if (await baseResponde()) return;
   await asegurarDocker();
-  const existe = correr("docker", ["inspect", CONTENEDOR()]).ok;
+  const existe = correr("docker", ["inspect", CONTENEDOR()], { timeout: 15_000 }).ok;
   log(existe ? "Encendiendo la base de datos…" : "Creando la base de datos por primera vez…");
-  const r = existe ? correr("docker", ["start", CONTENEDOR()]) : correr("docker", ["compose", "up", "-d"], { cwd: RAIZ });
+  const r = existe ? correr("docker", ["start", CONTENEDOR()], { timeout: 60_000 }) : correr("docker", ["compose", "up", "-d"], { cwd: RAIZ, timeout: 300_000 });
   if (!r.ok) throw new Error(`No pude encender la base: ${r.error}`);
   for (let i = 0; i < 45; i++) {
     if (await baseResponde()) return;
@@ -186,8 +235,10 @@ async function respaldoSiToca() {
 }
 
 async function iniciar() {
+  // Siempre queda constancia de cada arranque, también los automáticos al iniciar sesión.
+  log(`Arranque (proceso ${process.pid}, lanzado por ${process.ppid}).`);
   const otro = pidRegistrado();
-  if (otro && otro !== process.pid) {
+  if (otro) {
     log(`EmpleaTech ya está corriendo (proceso ${otro}).`);
     return;
   }
@@ -200,7 +251,7 @@ async function iniciar() {
   fs.mkdirSync(DATOS, { recursive: true });
   fs.writeFileSync(ARCHIVO_PID, String(process.pid));
   const limpiar = () => {
-    if (pidRegistrado() === process.pid) fs.rmSync(ARCHIVO_PID, { force: true });
+    if (leerPid() === process.pid) fs.rmSync(ARCHIVO_PID, { force: true });
   };
   process.on("exit", limpiar);
 
@@ -296,6 +347,7 @@ function quitarInicio() {
 const argv = process.argv.slice(2);
 try {
   if (argv.includes("--detener")) detener();
+  else if (argv.includes("--estado")) estado();
   else if (argv.includes("--instalar-inicio")) instalarInicio();
   else if (argv.includes("--quitar-inicio")) quitarInicio();
   else if (argv.includes("--segundo-plano")) enSegundoPlano(argv.filter((a) => a !== "--segundo-plano"));

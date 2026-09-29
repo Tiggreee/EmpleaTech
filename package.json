@@ -19,27 +19,27 @@
   "dependencies": {
     "jszip": "^3.10.2",
     "mammoth": "^1.12.3",
-    "next": "16.3.5",
+    "next": "16.3.6",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.3.289",
     "pg": "^8.16.3",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/chrome": "^0.3.3",
-    "@types/node": "^22",
+    "@types/node": "^26",
     "@types/pg": "^8.15.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "esbuild": "^0.28.2",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.5",
+    "eslint": "^10",
+    "eslint-config-next": "16.3.6",
     "happy-dom": "^20.14.5",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "^5.0.1"
+    "typescript": "^7",
+    "vitest": "^5.0.2"
   }
 }

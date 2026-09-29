@@ -6,12 +6,14 @@ import { ADAPTADORES, EMPRESAS_INICIALES, contextoReal } from "./index";
 /**
  * Prueba contra las APIs reales para detectar cambios de formato. Usa internet, así que solo corre a mano:
  *   EMPLEATECH_PRUEBA_VIVO=1 npx vitest run src/server/fuentes/vivo.test.ts
+ * Para probar solo algunas (y no gastar el límite diario de las demás): EMPLEATECH_PRUEBA_FUENTES=freelancer,braintrust
  */
 const activa = process.env.EMPLEATECH_PRUEBA_VIVO === "1";
+const soloEstas = (process.env.EMPLEATECH_PRUEBA_FUENTES ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 
 describe.skipIf(!activa)("fuentes reales (con internet)", () => {
   it("cada fuente gratuita responde y produce vacantes válidas", { timeout: 120_000 }, async () => {
-    const gratuitas = Object.values(ADAPTADORES).filter((f) => !f.info.claves.length);
+    const gratuitas = Object.values(ADAPTADORES).filter((f) => !f.info.claves.length && (!soloEstas.length || soloEstas.includes(f.info.id)));
     const consulta: Consulta = { palabras: ["developer", "engineer", "desarrollador"], soloRemoto: false, paises: [], empresas: EMPRESAS_INICIALES, maxPorFuente: 1000 };
     const { vacantes, reporte } = await buscarVacantes(gratuitas, consulta, contextoReal(), { forzar: true, timeoutMs: 60_000 });
     console.table(reporte);

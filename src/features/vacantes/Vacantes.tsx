@@ -22,10 +22,30 @@ function Preferencias({ inicial, fuentes, onGuardar }: { inicial: PreferenciasBu
   const [p, setP] = useState(inicial);
   const [palabras, setPalabras] = useState(inicial.palabras.join(", "));
   const [guardando, setGuardando] = useState(false);
-  const llenas = p.fuentes.length >= MAX_FUENTES_ACTIVAS;
+  const deEmpleo = fuentes.filter((f) => !f.freelance);
+  const deFreelance = fuentes.filter((f) => f.freelance);
+  const activasDeEmpleo = p.fuentes.filter((id) => deEmpleo.some((f) => f.id === id)).length;
+  const llenas = activasDeEmpleo >= MAX_FUENTES_ACTIVAS;
 
   const alternar = (id: FuenteId, activa: boolean) => setP({ ...p, fuentes: activa ? [...p.fuentes, id] : p.fuentes.filter((f) => f !== id) });
   const empresasDe = (f: FuenteDeEmpresas) => p.empresas[f].join(", ");
+
+  const casilla = (f: Fuente, conTope: boolean) => {
+    const activa = p.fuentes.includes(f.id);
+    const bloqueada = !f.disponible || (conTope && !activa && llenas);
+    return (
+      <li key={f.id}>
+        <label className={cx("flex h-full gap-2 rounded-xl border p-3 text-sm", activa ? "border-cian/50 bg-cian/5" : "border-white/10", bloqueada && !activa && "opacity-60")}>
+          <input type="checkbox" className="mt-0.5" checked={activa} disabled={bloqueada && !activa} onChange={(e) => alternar(f.id, e.target.checked)} />
+          <span>
+            <span className="font-medium">{f.nombre}</span>
+            {!f.disponible && <span className="ml-2 text-xs text-aviso">requiere clave</span>}
+            <span className="mt-0.5 block text-xs text-tenue">{f.descripcion}</span>
+          </span>
+        </label>
+      </li>
+    );
+  };
 
   return (
     <div className="space-y-5">
@@ -42,26 +62,16 @@ function Preferencias({ inicial, fuentes, onGuardar }: { inicial: PreferenciasBu
 
       <fieldset>
         <legend className="mb-2 text-sm font-medium">
-          Plataformas <span className="font-normal text-tenue">({p.fuentes.length} de {MAX_FUENTES_ACTIVAS})</span>
+          Plataformas de empleo <span className="font-normal text-tenue">({activasDeEmpleo} de {MAX_FUENTES_ACTIVAS})</span>
         </legend>
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {fuentes.map((f) => {
-            const activa = p.fuentes.includes(f.id);
-            const bloqueada = !f.disponible || (!activa && llenas);
-            return (
-              <li key={f.id}>
-                <label className={cx("flex h-full gap-2 rounded-xl border p-3 text-sm", activa ? "border-cian/50 bg-cian/5" : "border-white/10", bloqueada && !activa && "opacity-60")}>
-                  <input type="checkbox" className="mt-0.5" checked={activa} disabled={bloqueada && !activa} onChange={(e) => alternar(f.id, e.target.checked)} />
-                  <span>
-                    <span className="font-medium">{f.nombre}</span>
-                    {!f.disponible && <span className="ml-2 text-xs text-aviso">requiere clave</span>}
-                    <span className="mt-0.5 block text-xs text-tenue">{f.descripcion}</span>
-                  </span>
-                </label>
-              </li>
-            );
-          })}
-        </ul>
+        <ul className="grid gap-2 sm:grid-cols-2">{deEmpleo.map((f) => casilla(f, true))}</ul>
+      </fieldset>
+
+      <fieldset>
+        <legend className="mb-2 text-sm font-medium">
+          Proyectos freelance <span className="font-normal text-tenue">(extra: no cuentan en el límite)</span>
+        </legend>
+        <ul className="grid gap-2 sm:grid-cols-2">{deFreelance.map((f) => casilla(f, false))}</ul>
       </fieldset>
 
       {(["greenhouse", "lever", "ashby"] as const)
@@ -116,7 +126,9 @@ function TarjetaVacante({ item, ahora, onGuardar, onDescartar }: { item: Guardad
       <div className="mt-3 flex flex-wrap gap-1.5">
         {v.modalidad && <Insignia>{MODALIDAD[v.modalidad]}</Insignia>}
         {v.ubicacion && <Insignia>{v.ubicacion.length > 40 ? `${v.ubicacion.slice(0, 40)}…` : v.ubicacion}</Insignia>}
+        {v.tipo === "proyecto" && <Insignia tono="cian">Proyecto freelance</Insignia>}
         {salario(v.salario) && <Insignia tono="ok">{salario(v.salario)}</Insignia>}
+        {v.propuestas !== undefined && <Insignia>{v.propuestas} propuesta{v.propuestas === 1 ? "" : "s"}</Insignia>}
         {hace(v.publicadaEn, ahora) && <Insignia>{hace(v.publicadaEn, ahora)}</Insignia>}
         {resumen.riesgo !== "limpia" && <Insignia tono={resumen.riesgo === "riesgo" ? "riesgo" : "aviso"}>{resumen.riesgo === "riesgo" ? "Oferta riesgosa" : "Revisar con cuidado"}</Insignia>}
       </div>
@@ -134,7 +146,7 @@ function TarjetaVacante({ item, ahora, onGuardar, onDescartar }: { item: Guardad
         {onDescartar && <Boton pequeno variante="secundario" disabled={ocupado} onClick={accion(onDescartar)}>Descartar</Boton>}
         {item.estado !== "descartada" && (
           <EnlaceBoton pequeno variante="secundario" href={`/preparar?vacante=${encodeURIComponent(v.id)}`}>
-            Preparar CV y carta
+            {v.tipo === "proyecto" ? "Preparar propuesta" : "Preparar CV y carta"}
           </EnlaceBoton>
         )}
         <a className="ml-auto text-xs text-cian underline-offset-2 hover:underline" href={v.url} target="_blank" rel="noopener noreferrer">

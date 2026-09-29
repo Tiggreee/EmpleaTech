@@ -14,6 +14,8 @@ export const FUENTES = [
   "adzuna",
   "jooble",
   "usajobs",
+  "freelancer",
+  "braintrust",
 ] as const;
 export type FuenteId = (typeof FUENTES)[number];
 
@@ -26,7 +28,8 @@ export interface SalarioVacante {
   min?: number;
   max?: number;
   moneda?: string;
-  periodo?: "hora" | "mes" | "año";
+  /** «proyecto»: presupuesto total de un proyecto freelance de precio fijo. */
+  periodo?: "hora" | "mes" | "año" | "proyecto";
 }
 
 /** Una vacante ya normalizada, sin importar de qué plataforma venga. */
@@ -50,6 +53,10 @@ export interface Vacante {
   publicadaEn?: string;
   salario?: SalarioVacante;
   etiquetas: string[];
+  /** Proyecto freelance: se gana con una propuesta, no con una postulación. Sin este campo es un empleo. */
+  tipo?: "proyecto";
+  /** Propuestas que ya recibió el proyecto, si la plataforma lo publica: mide la competencia. */
+  propuestas?: number;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -215,6 +222,8 @@ export function crearVacante(fuente: FuenteId, datos: Omit<Vacante, "id" | "fuen
     publicadaEn: datos.publicadaEn,
     salario: limpiarSalario(datos.salario),
     etiquetas: [...new Set((datos.etiquetas ?? []).map((e) => e.trim()).filter(Boolean))].slice(0, MAX.etiquetas),
+    tipo: datos.tipo === "proyecto" ? "proyecto" : undefined,
+    propuestas: typeof datos.propuestas === "number" && Number.isInteger(datos.propuestas) && datos.propuestas >= 0 ? datos.propuestas : undefined,
   };
   return Object.fromEntries(Object.entries(vacante).filter(([, v]) => v !== undefined)) as unknown as Vacante;
 }

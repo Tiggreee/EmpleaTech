@@ -194,11 +194,12 @@ export default function Hoy() {
                         {v.modalidad && <Insignia>{MODALIDAD[v.modalidad]}</Insignia>}
                         {salario(v.salario) && <Insignia tono="ok">{salario(v.salario)}</Insignia>}
                         {v.ats && <Insignia tono="cian">Formulario {v.ats}</Insignia>}
+                        {v.tipo === "proyecto" && <Insignia tono="cian">Proyecto freelance{v.propuestas !== undefined ? ` · ${v.propuestas} propuestas` : ""}</Insignia>}
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <EnlaceBoton pequeno variante="secundario" href={`/preparar?vacante=${encodeURIComponent(v.id)}`}>CV y carta</EnlaceBoton>
+                        <EnlaceBoton pequeno variante="secundario" href={`/preparar?vacante=${encodeURIComponent(v.id)}`}>{v.tipo === "proyecto" ? "Propuesta" : "CV y carta"}</EnlaceBoton>
                         <a className="boton boton-sec !px-2.5 !py-1.5 !text-xs" href={v.urlPostular ?? v.url} target="_blank" rel="noopener noreferrer">
-                          Abrir formulario ↗
+                          {v.tipo === "proyecto" ? "Abrir proyecto ↗" : "Abrir formulario ↗"}
                         </a>
                         <Boton pequeno disabled={ocupado === v.id} onClick={() => void enviada(g)}>Ya la envié</Boton>
                         <Boton pequeno variante="secundario" disabled={ocupado === v.id} onClick={() => void saltar(g)}>Saltar</Boton>

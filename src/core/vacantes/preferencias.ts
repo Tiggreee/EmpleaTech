@@ -1,11 +1,11 @@
 import type { PerfilJson } from "../perfil/estructurado";
 import type { Respuestas } from "../perfil/respuestas";
 import { AJUSTES_COLA_INICIALES } from "./cola";
-import { MAX_FUENTES_ACTIVAS, type Consulta, type FuenteDeEmpresas } from "./fuentes";
+import { MAX_FUENTES_ACTIVAS, esFuenteFreelance, type Consulta, type FuenteDeEmpresas } from "./fuentes";
 import { FUENTES, type FuenteId } from "./vacante";
 
 export interface PreferenciasBusqueda {
-  /** Hasta 5 plataformas activas. */
+  /** Hasta 5 plataformas de empleo activas, más las de proyectos freelance que quieras. */
   fuentes: FuenteId[];
   palabras: string[];
   soloRemoto: boolean;
@@ -31,9 +31,9 @@ function lista(x: unknown, max: number, largo: number): string[] {
 export function sanitizarPreferencias(crudo: unknown, porDefecto: PreferenciasBusqueda): PreferenciasBusqueda {
   if (typeof crudo !== "object" || crudo === null) return porDefecto;
   const o = crudo as Record<string, unknown>;
-  const fuentes = Array.isArray(o.fuentes)
-    ? [...new Set(o.fuentes.filter((f): f is FuenteId => (FUENTES as readonly string[]).includes(f as string)))].slice(0, MAX_FUENTES_ACTIVAS)
-    : porDefecto.fuentes;
+  const validas = Array.isArray(o.fuentes) ? [...new Set(o.fuentes.filter((f): f is FuenteId => (FUENTES as readonly string[]).includes(f as string)))] : null;
+  // El tope aplica a las plataformas de empleo; los proyectos freelance son un extra aparte.
+  const fuentes = validas ? [...validas.filter((f) => !esFuenteFreelance(f)).slice(0, MAX_FUENTES_ACTIVAS), ...validas.filter(esFuenteFreelance)] : porDefecto.fuentes;
   const e = (typeof o.empresas === "object" && o.empresas !== null ? o.empresas : {}) as Record<string, unknown>;
   const tokens = (k: FuenteDeEmpresas) => (Array.isArray(e[k]) ? lista(e[k], 25, 80).map((t) => t.toLowerCase()).filter((t) => TOKEN.test(t)) : porDefecto.empresas[k]);
   const entero = (x: unknown, def: number, min: number, maxV: number) =>

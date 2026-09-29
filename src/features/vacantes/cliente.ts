@@ -30,7 +30,7 @@ export const cambiarEstadoVacante = (id: string, estado: EstadoVacante) => pedir
 
 export const MODALIDAD = { remoto: "Remoto", hibrido: "Híbrido", presencial: "Presencial" } as const;
 export const TONO_RECOMENDACION: Record<string, Tono> = { postular: "ok", revisar: "cian", descartar: "riesgo", "sin-analisis": "neutro" };
-const PERIODO = { hora: "/h", mes: "/mes", año: "/año" } as const;
+const PERIODO = { hora: "/h", mes: "/mes", año: "/año", proyecto: "por proyecto" } as const;
 
 export const nombreFuente = (f: FuenteId) => INFO_FUENTES[f]?.nombre ?? f;
 

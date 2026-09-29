@@ -3,6 +3,7 @@ import type { FuenteId } from "@/core/vacantes/vacante";
 import { arbeitnow, getOnBoard, himalayas, jobicy, remoteOk, remotive } from "./agregadores";
 import { adzuna, jooble, usaJobs } from "./con-clave";
 import { ashby, greenhouse, lever } from "./empresas";
+import { braintrust, freelancer } from "./freelance";
 
 export const ADAPTADORES: Record<FuenteId, FuenteVacantes> = {
   getonboard: getOnBoard,
@@ -17,6 +18,8 @@ export const ADAPTADORES: Record<FuenteId, FuenteVacantes> = {
   adzuna,
   jooble,
   usajobs: usaJobs,
+  freelancer,
+  braintrust,
 };
 
 /** Tableros verificados (con vacantes publicadas) para empezar; el usuario puede cambiarlos. */

@@ -54,15 +54,19 @@ function tokens(texto: string): string[] {
     .map((w) => EQUIVALENTE[w] ?? w);
 }
 
+/** Niveles del puesto: nunca son la palabra clave («Senior Java Engineer» → «java», no «senior»). */
+const NIVELES = new Set(["senior", "sr", "semi", "ssr", "junior", "jr", "mid", "lead", "principal", "staff", "trainee", "intern", "becario", "practicante"]);
+
 /** La palabra más específica de una búsqueda («Desarrolladora Backend» → «backend»), para APIs que filtran por etiqueta. */
 export function palabraClave(busqueda: string): string | undefined {
   const t = tokens(busqueda);
-  return t.find((w) => !GENERICAS.has(w)) ?? t[0];
+  return t.find((w) => !GENERICAS.has(w) && !NIVELES.has(w)) ?? t.find((w) => !NIVELES.has(w)) ?? t[0];
 }
 
 /**
  * Una búsqueda coincide si todas sus palabras importantes aparecen (en cualquier orden) en el título o las etiquetas.
- * Basta con que coincida una de las búsquedas.
+ * Basta con que coincida una de las búsquedas. Los proyectos freelance se titulan por lo que hay que construir
+ * («App Android con GPS»), no por el puesto: para ellos basta la palabra más específica («java») en título o habilidades.
  */
 export function coincidePalabras(v: Vacante, palabras: string[]): boolean {
   if (!palabras.length) return true;
@@ -70,7 +74,8 @@ export function coincidePalabras(v: Vacante, palabras: string[]): boolean {
   return palabras.some((p) => {
     const t = tokens(p);
     const especificas = t.filter((w) => !GENERICAS.has(w));
-    const requeridas = especificas.length ? especificas : t;
+    const clave = palabraClave(p);
+    const requeridas = v.tipo === "proyecto" ? (clave ? [clave] : []) : especificas.length ? especificas : t;
     return requeridas.length > 0 && requeridas.every((w) => texto.has(w));
   });
 }
@@ -176,6 +181,17 @@ export function puntuar(v: Vacante, cvTexto: string, respuestas: Respuestas, aho
   } else if (v.publicadaEn && dias >= 0 && dias <= 3) {
     valor += 5;
     factores.push("Publicada hace menos de 4 días: postular pronto aumenta las respuestas (+5)");
+  }
+
+  // Proyectos freelance: los primeros en proponer tienen mucha más probabilidad de que el cliente los lea.
+  if (v.propuestas !== undefined) {
+    if (v.propuestas <= 10) {
+      valor += 5;
+      factores.push(`Lleva ${v.propuestas} propuesta${v.propuestas === 1 ? "" : "s"}: llegas entre los primeros (+5)`);
+    } else if (v.propuestas > 50) {
+      valor -= 5;
+      factores.push(`Ya lleva ${v.propuestas} propuestas: destaca con una propuesta corta y concreta (−5)`);
+    }
   }
 
   valor = Math.max(0, Math.min(100, Math.round(valor)));

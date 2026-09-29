@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { leerPerfil } from "../perfil/estructurado";
 import { sanitizarRespuestas } from "../perfil/respuestas";
-import { aniosDeExperiencia, prepararDocumentos } from "./aMedida";
+import { MAX_PROPUESTA, aniosDeExperiencia, prepararDocumentos } from "./aMedida";
 import { cvATexto, fechaLegible, rangoFechas } from "./formato";
 
 const AHORA = new Date("2026-09-28T12:00:00Z");
@@ -38,7 +38,7 @@ const OFERTA_EN = {
 
 describe("documentos a la medida", () => {
   const { perfil } = leerPerfil(CV);
-  const r = sanitizarRespuestas({ disponibilidad: "2-semanas" });
+  const r = sanitizarRespuestas({ disponibilidad: "2-semanas", aniosExperiencia: 8 });
 
   it("no inventa nada: los logros y habilidades salen del perfil", () => {
     const d = prepararDocumentos(perfil, OFERTA_ES, r, AHORA);
@@ -80,6 +80,58 @@ describe("documentos a la medida", () => {
   it("años de experiencia sin contar dos veces los puestos que se traslapan", () => {
     expect(aniosDeExperiencia(perfil, sanitizarRespuestas({}), AHORA)).toBe(8);
     expect(aniosDeExperiencia(perfil, sanitizarRespuestas({ aniosExperiencia: 5 }), AHORA)).toBe(5);
+  });
+
+  it("si no declaraste tus años, ningún documento los afirma (sumar puestos de otras áreas sería falso)", () => {
+    const d = prepararDocumentos(perfil, OFERTA_ES, sanitizarRespuestas({}), AHORA);
+    for (const texto of [d.cv.basics.summary ?? "", d.carta, d.propuesta]) expect(texto).not.toMatch(/\d+ años?/);
+  });
+});
+
+describe("propuesta para proyectos freelance", () => {
+  const { perfil: base } = leerPerfil(CV);
+  const perfil = {
+    ...base,
+    basics: { ...base.basics, url: "https://ana.dev", profiles: [{ network: "GitHub", url: "https://github.com/ana-ejemplo" }] },
+    projects: [
+      { name: "Pasarela de cobros", description: "API de pagos en Node.js con PostgreSQL y webhooks", url: "https://github.com/ana-ejemplo/cobros" },
+      { name: "Recetario", description: "App de recetas en Flutter" },
+    ],
+  };
+  const r = sanitizarRespuestas({ disponibilidad: "inmediata" });
+  const PROYECTO = { titulo: "API de pagos para tienda en línea", empresa: "Cliente en México", texto: "Necesito una API en Node.js con PostgreSQL para cobrar con tarjeta y enviar webhooks.", tipo: "proyecto" as const };
+
+  it("abre con el proyecto del cliente, muestra evidencia real y un proyecto propio con su enlace", () => {
+    const d = prepararDocumentos(perfil, PROYECTO, r, AHORA);
+    expect(d.propuesta).toMatch(/^Hola, leí tu proyecto «API de pagos para tienda en línea»/);
+    expect(d.propuesta).toContain("Node.js");
+    expect(d.propuesta).toContain("en Acme Pagos diseñé la API de cobros");
+    expect(d.propuesta).toContain("Pasarela de cobros");
+    expect(d.propuesta).toContain("https://github.com/ana-ejemplo/cobros");
+    expect(d.propuesta).not.toContain("Recetario");
+    expect(d.propuesta).toContain("Puedo empezar de inmediato.");
+    expect(d.propuesta).toMatch(/\?/);
+  });
+
+  it("nunca incluye correo ni teléfono (las plataformas lo prohíben antes del contrato), pero sí tu portafolio", () => {
+    const d = prepararDocumentos(perfil, PROYECTO, r, AHORA);
+    expect(d.propuesta).not.toContain("ana@correo.mx");
+    expect(d.propuesta).not.toMatch(/\+52/);
+    expect(d.propuesta).toMatch(/Ana Torres\nhttps:\/\/github\.com\/ana-ejemplo · https:\/\/ana\.dev$/);
+  });
+
+  it("en inglés si el proyecto está en inglés, sin pegar frases del CV en español", () => {
+    const d = prepararDocumentos(perfil, { ...PROYECTO, titulo: "Payments API", texto: "We are looking for a developer to build a Node.js API with PostgreSQL that charges cards and sends webhooks to our online store. You will work with our team." }, r, AHORA);
+    expect(d.propuesta).toMatch(/^Hi, I read your project "Payments API"/);
+    expect(d.propuesta).not.toMatch(/diseñé|cobros de/i);
+    expect(d.propuesta).toContain("I can start immediately.");
+  });
+
+  it("cabe en el límite de Freelancer.com aunque el perfil sea largo", () => {
+    const largo = { ...perfil, projects: [{ name: "Pasarela de cobros", description: `API de pagos en Node.js con PostgreSQL. ${"Detalle técnico extenso. ".repeat(80)}`, url: "https://github.com/ana-ejemplo/cobros" }] };
+    const d = prepararDocumentos(largo, PROYECTO, r, AHORA);
+    expect(d.propuesta.length).toBeLessThanOrEqual(MAX_PROPUESTA);
+    expect(d.propuesta).toMatch(/Ana Torres/);
   });
 });
 

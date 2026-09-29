@@ -10,6 +10,8 @@ export interface OfertaParaDocs {
   titulo: string;
   empresa: string;
   texto: string;
+  /** Proyecto freelance: lo que importa es la propuesta, no la carta. */
+  tipo?: "proyecto";
 }
 
 export interface DocumentosAMedida {
@@ -22,6 +24,8 @@ export interface DocumentosAMedida {
   brechas: string[];
   transferibles: { pide: string; tienes: string }[];
   carta: string;
+  /** Para proyectos freelance: corta, centrada en el cliente y sin datos de contacto (las plataformas lo prohíben). */
+  propuesta: string;
 }
 
 /** Puerto para quien redacte los documentos: hoy la versión local; mañana, una con IA que cumpla el mismo contrato. */
@@ -196,6 +200,97 @@ function carta(p: PerfilJson, o: OfertaParaDocs, c: ContextoCarta): string {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// Propuesta para proyectos freelance
+
+/** Límite de Freelancer.com; Upwork y Workana aceptan más, pero una propuesta corta se lee completa. */
+export const MAX_PROPUESTA = 1500;
+
+/** Partes de la propuesta: las opcionales se quitan, de la menos a la más importante, si no cabe. */
+interface Parte {
+  texto: string;
+  /** 0 = siempre va; mayor = se quita antes. */
+  prescindible: number;
+}
+
+function proyectoRelevante(p: PerfilJson, pesos: Map<string, number>, palabras: Set<string>) {
+  return p.projects
+    .map((pr) => ({ pr, r: relevancia(`${pr.name} ${pr.description ?? ""}`, pesos, palabras) }))
+    .filter((x) => x.r > 0.3)
+    .sort((a, b) => b.r - a.r)[0]?.pr;
+}
+
+function propuesta(p: PerfilJson, o: OfertaParaDocs, c: ContextoCarta): string {
+  const b = p.basics;
+  const es = c.idioma === "es";
+  const top = c.enfasis.slice(0, 3);
+  const partes: Parte[] = [];
+
+  // Lo primero que ve el cliente en la vista previa: que leíste su proyecto y que es lo tuyo.
+  const encaje = top.length ? (es ? ` Trabajo con ${lista(top, c.idioma)}` : ` I work with ${lista(top, c.idioma)}`) : "";
+  const anios = c.anios && c.anios > 0 ? (es ? ` y llevo ${c.anios} año${c.anios === 1 ? "" : "s"} en el área` : ` and have ${c.anios} year${c.anios === 1 ? "" : "s"} of experience`) : "";
+  partes.push({
+    texto: es
+      ? `Hola, leí tu proyecto «${o.titulo}» y es el tipo de trabajo que hago.${encaje}${encaje ? `${anios}.` : ""}`
+      : `Hi, I read your project "${o.titulo}" and it's exactly the kind of work I do.${encaje}${encaje ? `${anios}.` : ""}`,
+    prescindible: 0,
+  });
+
+  // Evidencia real: logros del CV (solo si están en el idioma de la propuesta) y un proyecto propio con enlace.
+  if (c.cvMismoIdioma) {
+    const logros = p.work
+      .flatMap((w) => w.highlights.map((h) => ({ h, donde: w.name, r: relevancia(h, c.pesos, c.palabras) })))
+      .filter((x) => x.r > 0.3)
+      .sort((a, b) => b.r - a.r)
+      .slice(0, 2);
+    logros.forEach((l, i) =>
+      partes.push({
+        texto: l.donde ? (es ? `${i ? "También" : "Por ejemplo"}, en ${l.donde} ${frase(l.h)}.` : `${i ? "Also" : "For example"}, at ${l.donde} I ${frase(l.h).replace(/^i /, "")}.`) : `${l.h.replace(/[.;]+$/, "")}.`,
+        prescindible: i ? 4 : 1,
+      }),
+    );
+  }
+  const pr = proyectoRelevante(p, c.pesos, c.palabras);
+  if (pr) {
+    const detalle = c.cvMismoIdioma && pr.description ? `: ${frase(pr.description)}` : "";
+    partes.push({ texto: `${es ? "Un proyecto mío parecido" : "A similar project of mine"} — ${pr.name}${detalle}${pr.url ? ` (${pr.url})` : ""}.`, prescindible: 2 });
+  }
+
+  if (c.transferibles.length) {
+    const t = c.transferibles[0];
+    partes.push({ texto: es ? `No he usado ${t.pide} directamente, pero mi experiencia con ${t.tienes} se transfiere bien.` : `I haven't used ${t.pide} directly, but my experience with ${t.tienes} transfers well.`, prescindible: 3 });
+  }
+
+  partes.push({
+    texto: es
+      ? "Cómo lo abordaría: primero confirmo contigo el alcance y los entregables, y después te muestro avances en entregas cortas para que valides sobre la marcha."
+      : "How I'd approach it: first confirm the scope and deliverables with you, then share progress in short iterations so you can review as we go.",
+    prescindible: 5,
+  });
+
+  const r = c.respuestas;
+  const cuando = r.disponibilidad === "fecha" ? fechaDeInicio(r, c.ahora) : r.disponibilidad ? DISPONIBILIDAD[c.idioma][r.disponibilidad] : undefined;
+  if (cuando) partes.push({ texto: es ? `Puedo empezar ${r.disponibilidad === "fecha" ? `a partir del ${cuando}` : cuando}.` : `I can start ${r.disponibilidad === "fecha" ? `on ${cuando}` : cuando}.`, prescindible: 0 });
+
+  // Una pregunta invita a responder: los clientes contestan más a quien abre conversación.
+  partes.push({ texto: es ? "¿Tienes una fecha de entrega en mente y hay algo ya construido que deba revisar?" : "Do you have a deadline in mind, and is there anything already built I should review?", prescindible: 0 });
+
+  // Sin correo ni teléfono: compartir contacto antes del contrato va contra las reglas de estas plataformas.
+  const enlaces = [b.profiles.find((x) => x.network === "GitHub")?.url, b.url].filter(Boolean).join(" · ");
+  partes.push({ texto: [es ? "Saludos," : "Best,", b.name, enlaces].filter(Boolean).join("\n"), prescindible: 0 });
+
+  let incluidas = partes;
+  const unir = (xs: Parte[]) => xs.map((x) => x.texto).join("\n\n");
+  while (unir(incluidas).length > MAX_PROPUESTA) {
+    const peor = Math.max(...incluidas.map((x) => x.prescindible));
+    if (peor === 0) break;
+    const i = incluidas.findLastIndex((x) => x.prescindible === peor);
+    incluidas = incluidas.filter((_, k) => k !== i);
+  }
+  const texto = unir(incluidas);
+  return texto.length > MAX_PROPUESTA ? `${texto.slice(0, MAX_PROPUESTA - 1).trimEnd()}…` : texto;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 
 /** Versión local y determinista: reordena y destaca lo que ya está en el perfil. No inventa experiencia. */
 export function prepararDocumentos(p: PerfilJson, o: OfertaParaDocs, respuestas: Respuestas, ahora: Date): DocumentosAMedida {
@@ -210,7 +305,9 @@ export function prepararDocumentos(p: PerfilJson, o: OfertaParaDocs, respuestas:
   const enfasis = r.hallazgos.filter((h) => h.estado === "cubierta").map((h) => h.label);
   const brechas = r.hallazgos.filter((h) => h.estado === "faltante" && h.nivel !== "deseable").map((h) => h.label);
   const transferibles = r.hallazgos.filter((h) => h.estado === "transferible" && h.via).map((h) => ({ pide: h.label, tienes: h.via as string }));
-  const anios = aniosDeExperiencia(p, respuestas, ahora);
+  // En los documentos, solo los años que tú declaraste: sumar todos tus puestos mezclaría experiencia de otras áreas
+  // (por ejemplo, antes de un cambio de carrera) con la que pide esta vacante, y eso sería afirmar algo falso.
+  const anios = respuestas.aniosExperiencia;
 
   const clave = new Set(enfasis.map((e) => prep(e).folded));
   const tiene = (k: string) => Number(clave.has(prep(k).folded));
@@ -226,14 +323,8 @@ export function prepararDocumentos(p: PerfilJson, o: OfertaParaDocs, respuestas:
     skills,
   };
 
-  return {
-    idioma,
-    cv,
-    enfasis,
-    brechas,
-    transferibles,
-    carta: carta(p, o, { idioma, enfasis, transferibles, anios, respuestas, ahora, cvMismoIdioma: idiomaCv === "mixto" || idiomaCv === idioma, pesos, palabras }),
-  };
+  const contexto: ContextoCarta = { idioma, enfasis, transferibles, anios, respuestas, ahora, cvMismoIdioma: idiomaCv === "mixto" || idiomaCv === idioma, pesos, palabras };
+  return { idioma, cv, enfasis, brechas, transferibles, carta: carta(p, o, contexto), propuesta: propuesta(p, o, contexto) };
 }
 
 export const redactorLocal: Redactor = {

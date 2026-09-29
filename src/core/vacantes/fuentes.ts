@@ -31,7 +31,9 @@ export interface InfoFuente {
   nombre: string;
   sitio: string;
   descripcion: string;
-  alcance: "latam" | "remoto" | "europa" | "eeuu" | "empresas";
+  alcance: "latam" | "remoto" | "europa" | "eeuu" | "empresas" | "freelance";
+  /** Proyectos freelance: no cuentan contra el tope de plataformas de empleo y se ganan con propuesta. */
+  freelance?: boolean;
   /** Variables de entorno necesarias; sin ellas la fuente aparece como «requiere clave». */
   claves: string[];
   /** Tiempo mínimo entre consultas, para respetar los términos de uso de cada plataforma. */
@@ -157,7 +159,29 @@ export const INFO_FUENTES: Record<FuenteId, InfoFuente> = {
     claves: ["USAJOBS_API_KEY", "USAJOBS_EMAIL"],
     intervaloMinutos: 60,
   },
+  freelancer: {
+    id: "freelancer",
+    nombre: "Freelancer.com",
+    sitio: "https://www.freelancer.com",
+    descripcion: "Proyectos freelance de todo el mundo, con presupuesto y cuántas propuestas llevan. Omitimos los de menos de US$100 o US$10/h.",
+    alcance: "freelance",
+    claves: [],
+    intervaloMinutos: 60,
+    freelance: true,
+  },
+  braintrust: {
+    id: "braintrust",
+    nombre: "Braintrust",
+    sitio: "https://www.usebraintrust.com",
+    descripcion: "Proyectos de tecnología bien pagados, muchos abiertos a LatAm. Pide un perfil aprobado para proponer.",
+    alcance: "freelance",
+    claves: [],
+    intervaloMinutos: 180,
+    freelance: true,
+  },
 };
 
-/** Máximo de plataformas activas a la vez: el usuario elige las que más le sirven. */
+/** Máximo de plataformas de empleo activas a la vez: el usuario elige las que más le sirven. Las de freelance van aparte. */
 export const MAX_FUENTES_ACTIVAS = 5;
+
+export const esFuenteFreelance = (id: FuenteId): boolean => INFO_FUENTES[id]?.freelance === true;

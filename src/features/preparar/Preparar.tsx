@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { prepararDocumentos, type DocumentosAMedida, type IdiomaDoc, type OfertaParaDocs } from "@/core/documentos/aMedida";
+import { MAX_PROPUESTA, prepararDocumentos, type DocumentosAMedida, type IdiomaDoc, type OfertaParaDocs } from "@/core/documentos/aMedida";
 import { TITULOS, cvATexto, rangoFechas } from "@/core/documentos/formato";
 import type { PerfilJson } from "@/core/perfil/estructurado";
 import { cvActivo, estructuradoDe } from "@/core/perfil/perfil";
@@ -12,6 +12,9 @@ interface Props {
   vacanteId?: string;
   postulacionId?: string;
 }
+
+type Vista = "cv" | "carta" | "propuesta";
+const NOMBRE_VISTA: Record<Vista, string> = { cv: "CV", carta: "Carta de presentación", propuesta: "Propuesta" };
 
 function HojaCv({ cv, idioma }: { cv: PerfilJson; idioma: IdiomaDoc }) {
   const t = TITULOS[idioma];
@@ -97,13 +100,14 @@ export default function Preparar({ vacanteId, postulacionId }: Props) {
   const { perfil, postulaciones, cargando } = useDatosApp();
   const [oferta, setOferta] = useState<OfertaParaDocs | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [vista, setVista] = useState<"cv" | "carta">("cv");
+  const [vista, setVista] = useState<Vista>("cv");
   const [carta, setCarta] = useState<string | null>(null);
+  const [propuesta, setPropuesta] = useState<string | null>(null);
   const [copiado, setCopiado] = useState<string | null>(null);
   const cv = cvActivo(perfil);
 
   // Oferta desde una vacante encontrada (servidor) o desde una postulación del tracker.
-  const deTracker = useMemo(() => {
+  const deTracker = useMemo((): OfertaParaDocs | undefined => {
     const p = postulacionId ? postulaciones.find((x) => x.id === postulacionId) : undefined;
     return p?.oferta ? { titulo: p.puesto, empresa: p.empresa, texto: p.oferta.texto } : undefined;
   }, [postulacionId, postulaciones]);
@@ -114,11 +118,12 @@ export default function Preparar({ vacanteId, postulacionId }: Props) {
     void (async () => {
       try {
         const res = await fetch(`/api/vacantes?id=${encodeURIComponent(vacanteId)}`, { cache: "no-store" });
-        const body = (await res.json().catch(() => null)) as { vacante?: { vacante: { titulo: string; empresa: string; descripcion: string } }; error?: string } | null;
+        const body = (await res.json().catch(() => null)) as { vacante?: { vacante: { titulo: string; empresa: string; descripcion: string; tipo?: "proyecto" } }; error?: string } | null;
         if (!activo) return;
         if (!res.ok || !body?.vacante) throw new Error(body?.error ?? "No encontramos esa vacante.");
         const v = body.vacante.vacante;
-        setOferta({ titulo: v.titulo, empresa: v.empresa, texto: v.descripcion });
+        setOferta({ titulo: v.titulo, empresa: v.empresa, texto: v.descripcion, tipo: v.tipo });
+        if (v.tipo === "proyecto") setVista("propuesta");
       } catch (e) {
         if (activo) setError(e instanceof Error ? e.message : "No encontramos esa vacante.");
       }
@@ -134,6 +139,9 @@ export default function Preparar({ vacanteId, postulacionId }: Props) {
     [cv, fuente, perfil.respuestas],
   );
   const textoCarta = carta ?? docs?.carta ?? "";
+  const textoPropuesta = propuesta ?? docs?.propuesta ?? "";
+  const esProyecto = fuente?.tipo === "proyecto";
+  const vistas: Vista[] = esProyecto ? ["propuesta", "cv"] : ["cv", "carta"];
 
   async function copiar(texto: string, que: string) {
     try {
@@ -156,7 +164,7 @@ export default function Preparar({ vacanteId, postulacionId }: Props) {
     <main className="mx-auto max-w-5xl px-5 py-10">
       <div className="no-imprimir">
         <Encabezado
-          titulo="CV y carta a la medida"
+          titulo={esProyecto ? "Propuesta a la medida" : "CV y carta a la medida"}
           descripcion={fuente ? `Para ${fuente.titulo} en ${fuente.empresa}. Usamos solo lo que está en tu perfil: reordenamos y destacamos, nunca inventamos.` : "Preparando…"}
           acciones={<EnlaceBoton variante="secundario" href={postulacionId ? "/postulaciones" : "/vacantes"}>Volver</EnlaceBoton>}
         />
@@ -168,7 +176,7 @@ export default function Preparar({ vacanteId, postulacionId }: Props) {
         <div className="grid gap-6 lg:grid-cols-[1fr_18rem]">
           <div>
             <div role="tablist" aria-label="Documento" className="no-imprimir mb-4 flex gap-1">
-              {(["cv", "carta"] as const).map((v) => (
+              {vistas.map((v) => (
                 <button
                   key={v}
                   role="tab"
@@ -177,13 +185,23 @@ export default function Preparar({ vacanteId, postulacionId }: Props) {
                   onClick={() => setVista(v)}
                   className={cx("rounded-lg px-3 py-1.5 text-sm", vista === v ? "bg-white/10 text-white" : "text-tenue hover:text-white")}
                 >
-                  {v === "cv" ? "CV" : "Carta de presentación"}
+                  {NOMBRE_VISTA[v]}
                 </button>
               ))}
             </div>
 
             {vista === "cv" ? (
               <HojaCv cv={docs.cv} idioma={docs.idioma} />
+            ) : vista === "propuesta" ? (
+              <label className="block text-sm">
+                <span className="mb-1 flex justify-between text-xs text-tenue">
+                  <span>Edítala si quieres y pégala en la plataforma.</span>
+                  <span className={cx(textoPropuesta.length > MAX_PROPUESTA && "text-aviso")}>
+                    {textoPropuesta.length} / {MAX_PROPUESTA}
+                  </span>
+                </span>
+                <textarea aria-label="Propuesta" className="campo h-80 resize-y leading-relaxed" value={textoPropuesta} onChange={(e) => setPropuesta(e.target.value)} />
+              </label>
             ) : (
               <>
                 <label className="no-imprimir mb-3 block text-sm">
@@ -197,14 +215,25 @@ export default function Preparar({ vacanteId, postulacionId }: Props) {
 
           <aside className="no-imprimir space-y-4">
             <Tarjeta titulo="Listo para enviar">
-              <div className="flex flex-col gap-2">
-                <Boton onClick={() => window.print()}>Descargar {vista === "cv" ? "CV" : "carta"} en PDF</Boton>
-                <Boton variante="secundario" onClick={() => void copiar(vista === "cv" ? cvATexto(docs.cv, docs.idioma) : textoCarta, vista)}>
-                  Copiar {vista === "cv" ? "CV" : "carta"} como texto
-                </Boton>
-                {copiado && <p className="text-xs text-ok" role="status">{copiado === "cv" ? "CV copiado." : "Carta copiada."}</p>}
-                <p className="text-xs text-tenue">En la ventana de impresión elige «Guardar como PDF». Documento en {docs.idioma === "es" ? "español" : "inglés"}, como la vacante.</p>
-              </div>
+              {vista === "propuesta" ? (
+                <div className="flex flex-col gap-2">
+                  <Boton onClick={() => void copiar(textoPropuesta, "propuesta")}>Copiar propuesta</Boton>
+                  {copiado === "propuesta" && <p className="text-xs text-ok" role="status">Propuesta copiada.</p>}
+                  <p className="text-xs text-tenue">
+                    En {docs.idioma === "es" ? "español" : "inglés"}, como el proyecto. Sin tu correo ni teléfono: las plataformas prohíben compartirlos antes del contrato y pueden
+                    suspender tu cuenta.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Boton onClick={() => window.print()}>Descargar {vista === "cv" ? "CV" : "carta"} en PDF</Boton>
+                  <Boton variante="secundario" onClick={() => void copiar(vista === "cv" ? cvATexto(docs.cv, docs.idioma) : textoCarta, vista)}>
+                    Copiar {vista === "cv" ? "CV" : "carta"} como texto
+                  </Boton>
+                  {copiado && copiado !== "propuesta" && <p className="text-xs text-ok" role="status">{copiado === "cv" ? "CV copiado." : "Carta copiada."}</p>}
+                  <p className="text-xs text-tenue">En la ventana de impresión elige «Guardar como PDF». Documento en {docs.idioma === "es" ? "español" : "inglés"}, como la vacante.</p>
+                </div>
+              )}
             </Tarjeta>
             <Tarjeta titulo="Para esta vacante">
               {docs.enfasis.length > 0 && (

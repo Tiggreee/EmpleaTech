@@ -107,6 +107,47 @@ test.describe("Extensión de Chrome", () => {
     expect(cuerpo.datos.aprendidas["have you been referred by any staff member of wizeline"]).toBe("No");
   });
 
+  test("en Freelancer.com arma la propuesta, la pone en su cuadro y la registra cuando dices que la enviaste", async ({ page, baseURL }) => {
+    const PROYECTO = "https://www.freelancer.com/projects/nodejs/Payments-API-store";
+    const HTML_PROYECTO = `<!doctype html><html lang="en"><head><title>Payments API for an online store | Freelancer</title></head><body>
+      <nav>Browse Projects Messages Dashboard</nav>
+      <main><h1>Payments API for an online store</h1>
+      <p>We are looking for a developer to build a Node.js REST API with PostgreSQL and Docker that charges cards for our online store. You will work with our team.</p>
+      <form><label for="bid">Describe your proposal</label><textarea id="bid" maxlength="1500"></textarea><button type="button">Place Bid</button></form></main>
+      <footer>Freelancer® is a registered trademark</footer></body></html>`;
+
+    await page.goto("/cv");
+    await page.getByRole("button", { name: /Subir mi CV|Agregar CV/ }).first().click();
+    await page.getByLabel(/Texto del CV/).fill(CV);
+    await page.getByRole("button", { name: "Guardar CV" }).click();
+    await expect(page.getByText("CV guardado en tu base local.")).toBeVisible();
+
+    contexto = await chromium.launchPersistentContext(path.join(os.tmpdir(), `empleatech-ext-${Date.now()}`), {
+      channel: "chromium",
+      args: [`--disable-extensions-except=${DIST}`, `--load-extension=${DIST}`],
+    });
+    const sw = contexto.serviceWorkers()[0] ?? (await contexto.waitForEvent("serviceworker"));
+    await sw.evaluate((b) => chrome.storage.local.set({ base: b }), baseURL as string);
+    await contexto.route(PROYECTO, (r) => r.fulfill({ contentType: "text/html", body: HTML_PROYECTO }));
+
+    const sitio = await contexto.newPage();
+    await sitio.goto(PROYECTO);
+    await sitio.getByRole("button", { name: "Armar propuesta con EmpleaTech" }).click();
+
+    const cuadro = sitio.locator("#bid");
+    await expect(cuadro).toHaveValue(/^Hi, I read your project "Payments API for an online store"/);
+    await expect(cuadro).toHaveValue(/Node\.js/);
+    // Sin datos de contacto: las plataformas lo prohíben antes del contrato.
+    expect(await cuadro.inputValue()).not.toMatch(/ana\.torres@correo\.mx|\+52/);
+    await expect(sitio.getByText("Puse tu propuesta en el cuadro. Revísala, ajústala si quieres y envíala tú.")).toBeVisible();
+
+    // Enviar es tuyo; luego le avisas a EmpleaTech y queda en tu tracker.
+    await sitio.getByRole("button", { name: "Ya la envié" }).click();
+    await expect(sitio.getByText("Registrada en tu tracker.")).toBeVisible();
+    await page.goto("/postulaciones");
+    await expect(page.getByText("Payments API for an online store", { exact: true })).toBeVisible();
+  });
+
   test("el servicio no responde a páginas web cualquiera", async ({ request }) => {
     const sinEncabezado = await request.get(`/api/autollenado?url=${encodeURIComponent(FORMULARIO)}`);
     expect(sinEncabezado.status()).toBe(403);

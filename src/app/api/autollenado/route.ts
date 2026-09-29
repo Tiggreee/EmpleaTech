@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ErrorHttp, leerJson, respuestaError } from "@/server/api";
-import { datosParaFormulario, guardarAprendidas, registrarEnvio } from "@/server/autollenado";
+import { datosParaFormulario, guardarAprendidas, propuestaParaProyecto, registrarEnvio } from "@/server/autollenado";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,6 +69,11 @@ export async function POST(request: Request) {
       return responder(await registrarEnvio(urlValida(body.url), titulo), origen);
     }
     if (body.tipo === "aprendizaje") return responder({ guardadas: await guardarAprendidas(body.items) }, origen);
+    if (body.tipo === "propuesta") {
+      const titulo = typeof body.titulo === "string" ? body.titulo : "";
+      const texto = typeof body.texto === "string" ? body.texto.slice(0, 20_000) : "";
+      return responder(await propuestaParaProyecto(urlValida(body.url), titulo, texto), origen);
+    }
     throw new ErrorHttp(400, "Tipo de evento desconocido.");
   } catch (error) {
     return respuestaError(error);

@@ -175,7 +175,7 @@ function avisar(el: HTMLElement) {
   el.dispatchEvent(new Event("blur", { bubbles: true }));
 }
 
-function asignarValor(el: HTMLElement, valor: string) {
+export function asignarValor(el: HTMLElement, valor: string) {
   const vista = el.ownerDocument.defaultView as (Window & typeof globalThis) | null;
   const proto = el.tagName === "TEXTAREA" ? vista?.HTMLTextAreaElement.prototype : el.tagName === "SELECT" ? vista?.HTMLSelectElement.prototype : vista?.HTMLInputElement.prototype;
   const setter = proto ? Object.getOwnPropertyDescriptor(proto, "value")?.set : undefined;

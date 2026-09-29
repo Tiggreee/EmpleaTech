@@ -144,6 +144,29 @@ export async function registrarEnvio(url: string, tituloPagina: string, ahora = 
   return { registrada: true, empresa, puesto };
 }
 
+export interface PropuestaParaProyecto {
+  titulo: string;
+  propuesta: string;
+  idioma: IdiomaDoc;
+  enfasis: string[];
+  brechas: string[];
+}
+
+/**
+ * Propuesta para un proyecto freelance que tienes abierto. Si el proyecto llegó por tu búsqueda se usa su descripción
+ * completa; si no (Workana, Upwork), lo que la extensión leyó de la página.
+ */
+export async function propuestaParaProyecto(url: string, tituloPagina: string, textoPagina: string, ahora = new Date()): Promise<PropuestaParaProyecto> {
+  const [{ perfil }, vacante] = await Promise.all([loadState(), vacantePorUrl(url)]);
+  const cv = cvActivo(perfil);
+  if (!cv) throw new ErrorVacantes(409, "Primero sube tu CV en EmpleaTech.");
+  const titulo = (vacante?.titulo ?? tituloPagina).trim().slice(0, 300);
+  const texto = (vacante?.descripcion ?? textoPagina).trim();
+  if (texto.length < 40) throw new ErrorVacantes(400, "No encontré la descripción del proyecto en esta página. Abre la página del proyecto y vuelve a intentar.");
+  const d = prepararDocumentos(estructuradoDe(cv), { titulo: titulo || "tu proyecto", empresa: vacante?.empresa ?? "", texto, tipo: "proyecto" }, perfil.respuestas, ahora);
+  return { titulo: titulo || "Proyecto freelance", propuesta: d.propuesta, idioma: d.idioma, enfasis: d.enfasis.slice(0, 8), brechas: d.brechas.slice(0, 8) };
+}
+
 /** Guarda lo que respondiste a mano para reutilizarlo en el siguiente formulario. */
 export async function guardarAprendidas(items: unknown): Promise<number> {
   if (!Array.isArray(items)) return 0;

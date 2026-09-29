@@ -24,7 +24,7 @@ const eslintConfig = defineConfig([
       "no-restricted-globals": ["error", ...GLOBALES_DE_NAVEGADOR.map((name) => ({ name, message: "core no puede tocar el navegador; usa storage/." }))],
     },
   },
-  globalIgnores([".next/**", ".next-app/**", "out/**", "build/**", "coverage/**", "next-env.d.ts", "recon/out/**"]),
+  globalIgnores([".next/**", ".next-app/**", "extension/dist/**", "out/**", "build/**", "coverage/**", "next-env.d.ts", "recon/out/**"]),
 ]);
 
 export default eslintConfig;

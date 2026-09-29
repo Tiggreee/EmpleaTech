@@ -13,7 +13,7 @@ export default function AutollenadoPage() {
     <main className="mx-auto max-w-3xl px-5 py-10">
       <Encabezado
         titulo="Autollenado de formularios"
-        descripcion="Una extensión de Chrome llena los formularios de Greenhouse, Lever y Ashby con tu perfil, adjunta tu CV y tu carta para esa vacante, y marca en rojo lo que falta. Nunca envía: el botón «Enviar» siempre lo presionas tú."
+        descripcion="Una extensión de Chrome llena los formularios de Greenhouse, Lever y Ashby con tu perfil, adjunta tu CV y tu carta para esa vacante, y marca en rojo lo que falta. En Workana, Upwork y Freelancer.com arma la propuesta del proyecto que tienes abierto y la pone en su cuadro. Nunca envía: el botón «Enviar» siempre lo presionas tú."
         acciones={<EnlaceBoton variante="secundario" href="/hoy">Ir a mi cola</EnlaceBoton>}
       />
       <ol className="space-y-4">

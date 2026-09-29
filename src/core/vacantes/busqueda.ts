@@ -1,6 +1,7 @@
 import { analizar } from "../analisis/analizador";
 import { resumir, type ResumenAnalisis } from "../analisis/resumen";
-import { detectarIdioma, prep } from "../analisis/texto";
+import { SKILLS, findMentions } from "../analisis/habilidades";
+import { detectarIdioma, escapeRegex, prep } from "../analisis/texto";
 import { ETIQUETAS, type Respuestas } from "../perfil/respuestas";
 import { detectarAlertas } from "../radar/radar";
 import { prioridadDeResumen, type Prioridad } from "../seguimiento/prioridad";
@@ -63,6 +64,17 @@ export function palabraClave(busqueda: string): string | undefined {
   return t.find((w) => !GENERICAS.has(w) && !NIVELES.has(w)) ?? t.find((w) => !NIVELES.has(w)) ?? t[0];
 }
 
+/** Habilidades de dos palabras del catálogo («spring boot», «react native»): «spring» sola también es un resorte. */
+const ALIAS_COMPUESTOS = new Set(SKILLS.flatMap((sk) => sk.aliases).filter((a) => a.includes(" ")));
+
+/** Lo que debe mencionar un proyecto: la habilidad principal de la búsqueda, completa si es de dos palabras. */
+function claveDeProyecto(busqueda: string): string[] {
+  const t = tokens(busqueda).filter((w) => !GENERICAS.has(w) && !NIVELES.has(w));
+  if (t.length >= 2 && ALIAS_COMPUESTOS.has(`${t[0]} ${t[1]}`)) return [t[0], t[1]];
+  const clave = palabraClave(busqueda);
+  return clave ? [clave] : [];
+}
+
 /**
  * Una búsqueda coincide si todas sus palabras importantes aparecen (en cualquier orden) en el título o las etiquetas.
  * Basta con que coincida una de las búsquedas. Los proyectos freelance se titulan por lo que hay que construir
@@ -74,8 +86,7 @@ export function coincidePalabras(v: Vacante, palabras: string[]): boolean {
   return palabras.some((p) => {
     const t = tokens(p);
     const especificas = t.filter((w) => !GENERICAS.has(w));
-    const clave = palabraClave(p);
-    const requeridas = v.tipo === "proyecto" ? (clave ? [clave] : []) : especificas.length ? especificas : t;
+    const requeridas = v.tipo === "proyecto" ? claveDeProyecto(p) : especificas.length ? especificas : t;
     return requeridas.length > 0 && requeridas.every((w) => texto.has(w));
   });
 }
@@ -109,13 +120,16 @@ const NIVEL_ENTRADA = /\b(junior|jr|intern|internship|trainee|practicante|becari
  * Identifica con qué CV y respuestas se calculó un puntaje: si cambian, las vacantes guardadas se vuelven a puntuar.
  * FNV-1a de 32 bits: basta para detectar cambios, no es criptográfico.
  */
+/** Súbela cuando cambie cómo se puntúa: las vacantes guardadas se vuelven a puntuar solas. */
+const VERSION_PUNTAJE = 3;
+
 export function huellaPuntaje(cv: { id: string; actualizadoEn: string }, respuestas: Respuestas, extra = ""): string {
   let h = 0x811c9dc5;
   for (const c of JSON.stringify(respuestas) + extra) {
     h ^= c.charCodeAt(0);
     h = Math.imul(h, 0x01000193) >>> 0;
   }
-  return `${cv.id}|${cv.actualizadoEn}|${h.toString(16)}`;
+  return `${cv.id}|${cv.actualizadoEn}|v${VERSION_PUNTAJE}|${h.toString(16)}`;
 }
 
 function textoParaAnalizar(v: Vacante): string {
@@ -183,6 +197,22 @@ export function puntuar(v: Vacante, cvTexto: string, respuestas: Respuestas, aho
     factores.push("Publicada hace menos de 4 días: postular pronto aumenta las respuestas (+5)");
   }
 
+  // Las etiquetas de un proyecto son su lista de requisitos; las que el catálogo no conoce (SolidWorks, Telugu…) el
+  // analizador no las ve, así que aquí se cuentan contra tu CV.
+  if (v.tipo === "proyecto") {
+    const faltan = habilidadesFaltantes(v.etiquetas, cvTexto);
+    const utiles = v.etiquetas.filter((e) => !ETIQUETAS_GENERALES.has(prep(e).folded.trim())).length;
+    if (faltan.length >= 3 && faltan.length * 2 >= utiles) {
+      // La mayoría de lo que pide no está en tu CV: es de otra especialidad, aunque comparta alguna palabra.
+      valor = Math.min(valor, 20);
+      factores.push(`La mayoría de lo que pide no está en tu CV (${faltan.slice(0, 3).join(", ")}…): parece de otra especialidad`);
+    } else if (faltan.length) {
+      const menos = Math.min(30, faltan.length * 6);
+      valor -= menos;
+      factores.push(`Pide habilidades que no están en tu CV: ${faltan.slice(0, 3).join(", ")}${faltan.length > 3 ? "…" : ""} (−${menos})`);
+    }
+  }
+
   // Proyectos freelance: los primeros en proponer tienen mucha más probabilidad de que el cliente los lea.
   if (v.propuestas !== undefined) {
     if (v.propuestas <= 10) {
@@ -199,6 +229,24 @@ export function puntuar(v: Vacante, cvTexto: string, respuestas: Respuestas, aho
   if (recomendacion === "postular" && valor < 70) recomendacion = "revisar";
   if (recomendacion !== "descartar" && valor < 25) recomendacion = "descartar";
   return { vacante: v, resumen, prioridad: { valor, recomendacion, factores } };
+}
+
+/** Etiquetas tan generales que no dicen qué habilidad falta. */
+const ETIQUETAS_GENERALES = new Set(["engineering", "software development", "software engineering", "programming", "coding", "web development", "software architecture"]);
+
+/**
+ * Etiquetas de un proyecto que el catálogo de habilidades no conoce y tampoco aparecen en tu CV. Las que el catálogo
+ * sí conoce ya las evalúa el analizador (con crédito por habilidades transferibles), así que no se cuentan dos veces.
+ */
+export function habilidadesFaltantes(etiquetas: string[], cvTexto: string): string[] {
+  const cv = prep(cvTexto).folded;
+  return etiquetas.filter((e) => {
+    const t = prep(e);
+    const texto = t.folded.trim();
+    if (!texto || ETIQUETAS_GENERALES.has(texto)) return false;
+    if (SKILLS.some((sk) => findMentions(t.folded, t.orig, sk).length)) return false;
+    return !new RegExp(`(^|[^a-z0-9])${escapeRegex(texto)}([^a-z0-9]|$)`).test(cv);
+  });
 }
 
 export function ordenar(lista: VacantePuntuada[]): VacantePuntuada[] {

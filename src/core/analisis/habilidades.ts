@@ -61,6 +61,10 @@ export const SKILLS: Skill[] = [
   // Frontend
   s("react", "React", "frontend", [], { re: ["react(?:\\.?js)?(?![\\s-]+native)"], family: "jsfw" }),
   s("reactnative", "React Native", "frontend", ["react native", "react-native"], { family: "jsfw" }),
+  // Móvil nativo y multiplataforma: comunes en proyectos freelance.
+  s("android", "Android", "frontend", ["android", "android studio", "android sdk"], { family: "movil" }),
+  s("ios", "iOS", "frontend", ["ios", "iphone", "ipad", "xcode"], { family: "movil" }),
+  s("flutter", "Flutter", "frontend", ["flutter", "dart"], { family: "movil" }),
   s("nextjs", "Next.js", "frontend", ["next.js", "nextjs", "next js"], { family: "jsfw" }),
   s("vue", "Vue", "frontend", ["vue", "vuejs", "vue.js", "nuxt"], { family: "jsfw" }),
   s("angular", "Angular", "frontend", ["angular", "angularjs"], { family: "jsfw" }),

@@ -56,6 +56,10 @@ jobs:
       - run: npm run test:e2e
         env:
           CI: "true"
+      # La app como vive en internet: sin tu contraseña no se ve nada.
+      - run: npx playwright test -c playwright.acceso.config.ts
+        env:
+          CI: "true"
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

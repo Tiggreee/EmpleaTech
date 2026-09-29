@@ -1,9 +1,11 @@
-import { BASE_POR_DEFECTO, baseDeLaApp } from "./config";
+import { BASE_POR_DEFECTO, baseDeLaApp, tokenDeLaApp } from "./config";
 
 const campo = document.getElementById("base") as HTMLInputElement;
+const campoToken = document.getElementById("token") as HTMLInputElement;
 const estado = document.getElementById("estado") as HTMLParagraphElement;
 
 void baseDeLaApp().then((b) => (campo.value = b));
+void tokenDeLaApp().then((t) => (campoToken.value = t ?? ""));
 
 document.getElementById("guardar")?.addEventListener("click", async () => {
   let url: URL;
@@ -21,6 +23,6 @@ document.getElementById("guardar")?.addEventListener("click", async () => {
       return;
     }
   }
-  await chrome.storage.local.set({ base: url.origin });
+  await chrome.storage.local.set({ base: url.origin, token: campoToken.value.trim() });
   estado.textContent = "Guardado.";
 });

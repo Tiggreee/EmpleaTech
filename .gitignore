@@ -1,6 +1,7 @@
 ﻿/node_modules
 /.next/
 /.next-app/
+/.next-acceso/
 /out/
 /build/
 /coverage/

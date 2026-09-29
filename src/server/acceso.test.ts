@@ -46,6 +46,11 @@ describe("rechazoDeAcceso", () => {
     for (const r of rechazos) expect(rechazoDeAcceso(r)?.status).toBe(403);
   });
 
+  it("en Vercel no revisa el Host (ya solo llegan tus dominios), pero sí que ninguna otra página escriba", () => {
+    expect(rechazoDeAcceso(pedir({ host: "empleatech.ejemplo.dev" }), [], { revisarHost: false })).toBeNull();
+    expect(rechazoDeAcceso(pedir({ host: "empleatech.ejemplo.dev", metodo: "POST", origen: "https://sitio-malo.example" }), [], { revisarHost: false })?.status).toBe(403);
+  });
+
   it("bloquea cualquier cosa que llegue con un Host ajeno, aunque sea lectura", () => {
     expect(rechazoDeAcceso(pedir({ host: "atacante.example:3000" }))?.status).toBe(403);
     expect(rechazoDeAcceso(pedir({ host: null }))?.status).toBe(403);

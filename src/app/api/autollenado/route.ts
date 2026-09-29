@@ -46,7 +46,7 @@ export async function OPTIONS(request: Request) {
   if (!origen) return new NextResponse(null, { status: 403 });
   return new NextResponse(null, {
     status: 204,
-    headers: { "Access-Control-Allow-Origin": origen, "Access-Control-Allow-Methods": "GET, POST", "Access-Control-Allow-Headers": `content-type, ${ENCABEZADO}`, "Access-Control-Max-Age": "600" },
+    headers: { "Access-Control-Allow-Origin": origen, "Access-Control-Allow-Methods": "GET, POST", "Access-Control-Allow-Headers": `content-type, authorization, ${ENCABEZADO}`, "Access-Control-Max-Age": "600" },
   });
 }
 

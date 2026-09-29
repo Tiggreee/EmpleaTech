@@ -1,3 +1,4 @@
+import ConectarExtension from "@/features/autollenado/ConectarExtension";
 import { Encabezado, EnlaceBoton, Tarjeta } from "@/ui/ui";
 
 export const metadata = { title: "Autollenado" };
@@ -16,6 +17,7 @@ export default function AutollenadoPage() {
         descripcion="Una extensión de Chrome llena los formularios de Greenhouse, Lever y Ashby con tu perfil, adjunta tu CV y tu carta para esa vacante, y marca en rojo lo que falta. En Workana, Upwork y Freelancer.com arma la propuesta del proyecto que tienes abierto y la pone en su cuadro. Nunca envía: el botón «Enviar» siempre lo presionas tú."
         acciones={<EnlaceBoton variante="secundario" href="/hoy">Ir a mi cola</EnlaceBoton>}
       />
+      {process.env.EMPLEATECH_AUTH === "1" && <ConectarExtension />}
       <ol className="space-y-4">
         {PASOS.map((p, i) => (
           <li key={p.titulo}>

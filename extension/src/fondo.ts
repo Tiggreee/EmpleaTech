@@ -2,10 +2,14 @@
  * Service worker de la extensión: el único que habla con tu instalación de EmpleaTech. Las páginas de los ATS nunca
  * ven tu perfil completo; solo reciben lo que la extensión escribe en sus campos.
  */
-import { baseDeLaApp } from "./config";
+import { baseDeLaApp, tokenDeLaApp } from "./config";
 
 async function pedir(ruta: string, init?: RequestInit): Promise<unknown> {
-  const res = await fetch(`${await baseDeLaApp()}${ruta}`, { ...init, headers: { "Content-Type": "application/json", "x-empleatech": "extension", ...init?.headers } });
+  const token = await tokenDeLaApp();
+  const res = await fetch(`${await baseDeLaApp()}${ruta}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", "x-empleatech": "extension", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init?.headers },
+  });
   const body = (await res.json().catch(() => null)) as { error?: string } | null;
   if (!res.ok) throw new Error(body?.error ?? `EmpleaTech respondió ${res.status}`);
   return body;

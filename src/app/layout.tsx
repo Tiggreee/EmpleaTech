@@ -29,11 +29,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <DatosProvider>
           <PwaBarra />
-          <Nav />
+          <Nav conSesion={process.env.EMPLEATECH_AUTH === "1"} />
           <div className="flex-1">{children}</div>
           <footer className="border-t border-white/10 px-5 py-6 text-center text-xs text-tenue">
             <p>{APP_NAME} no envía postulaciones por ti. Tú decides qué guardar, qué descartar y qué enviar.</p>
-            <p className="mx-auto mt-2 max-w-3xl">Tus CVs, ofertas guardadas y postulaciones viven en tu base local de Postgres para que puedas revisarlos, exportarlos y analizarlos después con SQL.</p>
+            <p className="mx-auto mt-2 max-w-3xl">Tus CVs, ofertas guardadas y postulaciones viven en tu propia base de Postgres para que puedas revisarlos, exportarlos y analizarlos después con SQL.</p>
           </footer>
         </DatosProvider>
       </body>

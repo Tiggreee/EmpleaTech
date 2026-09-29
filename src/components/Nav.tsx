@@ -32,8 +32,17 @@ export function Logo({ tamano = 24 }: { tamano?: number }) {
   );
 }
 
-export default function Nav() {
+async function salir() {
+  await fetch("/api/acceso", { method: "DELETE" }).catch(() => undefined);
+  // Recarga completa a propósito (no router.push): que tus datos en memoria no se queden en la pestaña.
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+  window.location.href = "/entrar";
+}
+
+/** `conSesion`: la app vive en internet y pide contraseña; entonces aparece «Salir». */
+export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
   const ruta = usePathname();
+  if (ruta === "/entrar") return null;
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-[#05070f]/70 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-3" aria-label="Principal">
@@ -56,6 +65,13 @@ export default function Nav() {
               </li>
             );
           })}
+          {conSesion && (
+            <li>
+              <button type="button" onClick={() => void salir()} className="rounded-lg px-2.5 py-1.5 text-tenue transition-colors hover:text-white">
+                Salir
+              </button>
+            </li>
+          )}
         </ul>
       </nav>
     </header>

@@ -36,8 +36,12 @@ export function hostPermitido(host: string | null, extra: string[] = []): boolea
   return LOCAL.test(h) || extra.includes(h) || extra.includes(h.replace(/:\d{1,5}$/, ""));
 }
 
-export function rechazoDeAcceso(s: SolicitudAcceso, extra: string[] = []): Rechazo | null {
-  if (!hostPermitido(s.host, extra)) return { status: 403, mensaje: "EmpleaTech solo atiende en tu computadora (localhost)." };
+/**
+ * `revisarHost: false` en hosting que ya solo entrega a la app los dominios configurados (Vercel): ahí la lista de
+ * hosts locales no aplica. La revisión de origen (ninguna otra página escribe) sigue igual.
+ */
+export function rechazoDeAcceso(s: SolicitudAcceso, extra: string[] = [], { revisarHost = true }: { revisarHost?: boolean } = {}): Rechazo | null {
+  if (revisarHost && !hostPermitido(s.host, extra)) return { status: 403, mensaje: "EmpleaTech solo atiende en tu computadora (localhost)." };
   if (LECTURA.has(s.metodo.toUpperCase())) return null;
 
   const cruzado = { status: 403, mensaje: "Otra página intentó cambiar tus datos de EmpleaTech; lo bloqueamos." };

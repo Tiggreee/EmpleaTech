@@ -8,8 +8,14 @@ const migrationsDir = path.join(root, "migrations");
 
 async function main() {
   cargarEntornoLocal();
-  const databaseUrl = process.env.DATABASE_URL?.trim();
+  // Para migrar conviene la conexión directa (Neon la da como DATABASE_URL_UNPOOLED); la de pool, si no hay otra.
+  const databaseUrl = process.env.DATABASE_URL_UNPOOLED?.trim() || process.env.DATABASE_URL?.trim();
   if (!databaseUrl) {
+    // En el primer despliegue la base todavía no está conectada: se compila igual y se migra en el siguiente.
+    if (process.argv.includes("--si-hay-base")) {
+      console.warn("Sin DATABASE_URL: no migré. Conecta la base y vuelve a desplegar.");
+      return;
+    }
     throw new Error("Falta DATABASE_URL. Crea tu .env local a partir de .env.example antes de migrar.");
   }
   const pool = new pg.Pool({ connectionString: databaseUrl });

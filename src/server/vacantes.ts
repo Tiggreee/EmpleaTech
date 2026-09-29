@@ -6,6 +6,8 @@ import { buscarVacantes, huellaPuntaje, ordenar, puntuar, type ResultadoFuente, 
 import { consultaDe, preferenciasIniciales, sanitizarPreferencias, type PreferenciasBusqueda } from "@/core/vacantes/preferencias";
 import { FUENTES, type FuenteId, type Vacante } from "@/core/vacantes/vacante";
 import type { Prioridad } from "@/core/seguimiento/prioridad";
+import { ajustePorAprendizaje, huellaAprendizaje } from "@/core/aprendizaje/aprendizaje";
+import { calcularAprendizaje } from "./aprendizaje";
 import { loadState } from "./app-state";
 import { getPool, withTransaction } from "./db";
 import { ADAPTADORES, EMPRESAS_INICIALES, contextoReal } from "./fuentes";
@@ -69,7 +71,8 @@ export async function repuntuarSiCambio(ahora = new Date()): Promise<number> {
   const { perfil } = await loadState();
   const cv = cvActivo(perfil);
   if (!cv) return 0;
-  const huella = huellaPuntaje(cv, perfil.respuestas);
+  const aprendizaje = await calcularAprendizaje(ahora);
+  const huella = huellaPuntaje(cv, perfil.respuestas, huellaAprendizaje(aprendizaje));
   const { rows } = await getPool().query(
     `select id, datos_json from vacantes where profile_id = $1 and estado = 'nueva' and huella is distinct from $2 limit 500`,
     [APP_PROFILE_ID, huella],
@@ -77,7 +80,8 @@ export async function repuntuarSiCambio(ahora = new Date()): Promise<number> {
   if (!rows.length) return 0;
   await withTransaction(async (client) => {
     for (const r of rows) {
-      const p = puntuar(r.datos_json as Vacante, cv.texto, perfil.respuestas, ahora);
+      const v = r.datos_json as Vacante;
+      const p = puntuar(v, cv.texto, perfil.respuestas, ahora, ajustePorAprendizaje(aprendizaje, v));
       await client.query(
         `update vacantes set resumen_json = $3::jsonb, prioridad_json = $4::jsonb, score = $5, huella = $6, actualizada_en = now()
           where profile_id = $1 and id = $2`,
@@ -196,7 +200,8 @@ export async function buscarAhora(ahora = new Date()): Promise<ResultadoBusqueda
     ctx,
     { ultimaConsulta: ultimas },
   );
-  const puntuadas = ordenar(vacantes.map((v) => puntuar(v, cv.texto, perfil.respuestas, ahora)));
-  const nuevas = await guardarResultados(puntuadas, reporte, ahora, huellaPuntaje(cv, perfil.respuestas));
+  const aprendizaje = await calcularAprendizaje(ahora);
+  const puntuadas = ordenar(vacantes.map((v) => puntuar(v, cv.texto, perfil.respuestas, ahora, ajustePorAprendizaje(aprendizaje, v))));
+  const nuevas = await guardarResultados(puntuadas, reporte, ahora, huellaPuntaje(cv, perfil.respuestas, huellaAprendizaje(aprendizaje)));
   return { reporte, encontradas: puntuadas.length, nuevas };
 }

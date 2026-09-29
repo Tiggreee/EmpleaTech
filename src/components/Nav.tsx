@@ -12,6 +12,7 @@ const ENLACES = [
   { href: "/cv", texto: "Mi CV" },
   { href: "/perfil", texto: "Perfil" },
   { href: "/postulaciones", texto: "Postulaciones" },
+  { href: "/resultados", texto: "Resultados" },
   { href: "/inteligencia", texto: "Inteligencia" },
 ];
 

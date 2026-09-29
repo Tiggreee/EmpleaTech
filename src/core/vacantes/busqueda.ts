@@ -104,9 +104,9 @@ const NIVEL_ENTRADA = /\b(junior|jr|intern|internship|trainee|practicante|becari
  * Identifica con qué CV y respuestas se calculó un puntaje: si cambian, las vacantes guardadas se vuelven a puntuar.
  * FNV-1a de 32 bits: basta para detectar cambios, no es criptográfico.
  */
-export function huellaPuntaje(cv: { id: string; actualizadoEn: string }, respuestas: Respuestas): string {
+export function huellaPuntaje(cv: { id: string; actualizadoEn: string }, respuestas: Respuestas, extra = ""): string {
   let h = 0x811c9dc5;
-  for (const c of JSON.stringify(respuestas)) {
+  for (const c of JSON.stringify(respuestas) + extra) {
     h ^= c.charCodeAt(0);
     h = Math.imul(h, 0x01000193) >>> 0;
   }
@@ -117,8 +117,11 @@ function textoParaAnalizar(v: Vacante): string {
   return `${v.titulo}\n${v.etiquetas.length ? `Requisitos: ${v.etiquetas.join(", ")}\n` : ""}${v.descripcion}`;
 }
 
-/** Afinidad con el CV + radar de riesgos + tus preferencias, con cada factor explicado. */
-export function puntuar(v: Vacante, cvTexto: string, respuestas: Respuestas, ahora: Date): VacantePuntuada {
+/**
+ * Afinidad con el CV + radar de riesgos + tus preferencias, con cada factor explicado. `ajuste` es lo aprendido de tus
+ * resultados (plataformas y niveles que te responden más o menos), ya acotado por quien lo calcula.
+ */
+export function puntuar(v: Vacante, cvTexto: string, respuestas: Respuestas, ahora: Date, ajuste?: { puntos: number; motivo: string } | null): VacantePuntuada {
   const texto = textoParaAnalizar(v);
   const resumen = resumir(analizar(cvTexto, texto, { ahora }), detectarAlertas(texto, ahora), ahora);
   const base = prioridadDeResumen(resumen);
@@ -126,6 +129,10 @@ export function puntuar(v: Vacante, cvTexto: string, respuestas: Respuestas, aho
 
   let valor = base.valor;
   const factores = [...base.factores];
+  if (ajuste?.puntos) {
+    valor += ajuste.puntos;
+    factores.push(ajuste.motivo);
+  }
   if (v.modalidad && respuestas.modalidades.length && !respuestas.modalidades.includes(v.modalidad)) {
     valor -= 15;
     factores.push(`Es ${ETIQUETAS.modalidad[v.modalidad].toLowerCase()} y tú buscas ${respuestas.modalidades.map((m) => ETIQUETAS.modalidad[m].toLowerCase()).join(" o ")} (−15)`);

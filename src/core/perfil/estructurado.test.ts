@@ -186,3 +186,74 @@ describe("sanitizarPerfilJson", () => {
     expect(sanitizarPerfilJson(JSON.parse(JSON.stringify(perfil)))).toEqual(perfil);
   });
 });
+
+describe("leerPerfil: formato de PDF sin viñetas de texto (visto en un CV real)", () => {
+  const CV = `Senior Java Software Engineer | Full-Stack Java & React
+LAURA MÉNDEZ RÍOS
+Puebla, Mexico (Remote / Hybrid) | laura@ejemplo.dev | +52 2221234567
+linkedin.com/in/laura-mendez | github.com/lauramendez
+
+PROFESSIONAL EXPERIENCE
+Independent Software Projects | June 2024 - Present
+Design and build full-stack applications with Java/Spring Boot REST APIs and React front ends backed by PostgreSQL and
+Redis, owning testing and deployment.
+Implement event-driven workflows with Spring Kafka.
+Support Lead | Customer Operations | June 2015 - June 2024
+Led bilingual teams for 9 years, owning processes and incident coordination.
+
+PROJECTS
+StockApp | Inventory Platform | Public
+Value: Event-driven inventory platform built for consistent stock allocation, reliable event
+handling, and observability.
+Repository: github.com/lauramendez/stockapp
+Stack: Java 21, Spring Boot 3.4, PostgreSQL, React 19
+Engineering Outcome: Keeps a zero-oversell invariant under concurrency.
+PortfolioWeb | Contact API | Public
+Value: Portfolio with rate limiting.
+Repository: github.com/lauramendez/portfolio
+
+EDUCATION
+Full Stack Developer Program | TripleTen LatAm | June 2025 - June 2026
+B.A. in International Business | Universidad del Valle | June 2009 - May 2013
+
+TECHNICAL SKILLS
+Data: SQL (PostgreSQL, Oracle SQL/PL-SQL, H2), Redis
+
+CERTIFICATIONS
+Oracle Cloud Infrastructure Certified Architect Associate | Oracle | 2026
+EF SET English Certificate - C2 Proficient | EF Standard English Test | 2024`;
+  const { perfil } = leerPerfil(CV);
+
+  it("título arriba del nombre y ubicación sin la modalidad entre paréntesis", () => {
+    expect(perfil.basics.name).toBe("Laura Méndez Ríos");
+    expect(perfil.basics.label).toBe("Senior Java Software Engineer");
+    expect(perfil.basics.location).toEqual({ city: "Puebla", countryCode: "MX" });
+  });
+
+  it("logros de varias líneas sin viñeta, y el siguiente puesto no se come la última línea", () => {
+    expect(perfil.work).toHaveLength(2);
+    expect(perfil.work[0].highlights).toEqual([
+      "Design and build full-stack applications with Java/Spring Boot REST APIs and React front ends backed by PostgreSQL and Redis, owning testing and deployment.",
+      "Implement event-driven workflows with Spring Kafka.",
+    ]);
+    expect(perfil.work[1]).toMatchObject({ position: "Support Lead", name: "Customer Operations", startDate: "2015-06", endDate: "2024-06" });
+  });
+
+  it("educación en una línea por entrada, con bootcamp y «B.A.»", () => {
+    expect(perfil.education).toEqual([
+      { studyType: "Full Stack Developer Program", institution: "TripleTen LatAm", startDate: "2025-06", endDate: "2026-06" },
+      { studyType: "B.A.", area: "International Business", institution: "Universidad del Valle", startDate: "2009-06", endDate: "2013-05" },
+    ]);
+  });
+
+  it("proyectos con campos etiquetados, certificaciones por columnas y habilidades de Oracle", () => {
+    expect(perfil.projects).toEqual([
+      { name: "StockApp", url: "https://github.com/lauramendez/stockapp", description: "Event-driven inventory platform built for consistent stock allocation, reliable event handling, and observability. Stack: Java 21, Spring Boot 3.4, PostgreSQL, React 19 Keeps a zero-oversell invariant under concurrency." },
+      { name: "PortfolioWeb", url: "https://github.com/lauramendez/portfolio", description: "Portfolio with rate limiting." },
+    ]);
+    expect(perfil.certificates[1]).toEqual({ name: "EF SET English Certificate - C2 Proficient", issuer: "EF Standard English Test", date: "2024" });
+    const todas = perfil.skills.flatMap((s) => s.keywords);
+    expect(todas).toEqual(expect.arrayContaining(["Oracle Cloud (OCI)", "Oracle Database"]));
+    expect(todas.some((k) => k.endsWith(")") && !k.includes("("))).toBe(false);
+  });
+});

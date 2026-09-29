@@ -200,7 +200,8 @@ function ubicacionDe(linea: string): PerfilJson["basics"]["location"] | undefine
   if (/\d|@|https?:|www\./.test(folded) || linea.length > 70) return undefined;
   const pais = Object.keys(PAISES).find((p) => new RegExp(`\\b${p}\\b`).test(folded));
   if (!pais && !CIUDADES.test(folded)) return undefined;
-  const partes = linea.split(/\s*[,|·]\s*/).map((p) => p.trim()).filter(Boolean);
+  // «Morelia, Mexico (Remote / Hybrid)»: lo que va entre paréntesis es modalidad, no parte del lugar.
+  const partes = linea.replace(/\([^)]*\)/g, " ").split(/\s*[,|·]\s*/).map((p) => p.trim()).filter(Boolean);
   const sinPais = partes.filter((p) => !Object.keys(PAISES).includes(prep(p).folded));
   return {
     city: sinPais[0],
@@ -258,8 +259,13 @@ function leerBasicos(cabecera: string[], textoCompleto: string): PerfilJson["bas
   if (iNombre >= 0) {
     basics.name = tituloPropio(lineas[iNombre]);
     const siguiente = lineas[iNombre + 1];
-    if (siguiente && siguiente.length <= 70 && !/@|https?:|www\.|\d{4}/.test(siguiente) && !ubicacionDe(siguiente)) {
+    const previa = lineas[iNombre - 1];
+    const esTitulo = (l: string | undefined): l is string => !!l && l.length <= 90 && !/@|https?:|www\.|\d{4}/.test(l) && !ubicacionDe(l);
+    if (esTitulo(siguiente) && siguiente.length <= 70) {
       basics.label = limpiarBordes(siguiente.split(/\s*[|·]\s*/)[0]);
+    } else if (esTitulo(previa) && RE_ROL.test(prep(previa).folded)) {
+      // Muchos CV ponen el título profesional arriba del nombre.
+      basics.label = limpiarBordes(previa.split(/\s*[|·]\s*/)[0]);
     }
   }
   // La primera ubicación con país gana; si ninguna trae país, la primera que parezca ciudad.
@@ -303,6 +309,11 @@ function asignarCabecera(partes: string[], t: Trabajo): void {
   }
 }
 
+/** Una cabecera de puesto es corta y no es una oración: no termina en punto ni empieza en minúscula. */
+function pareceCabecera(l: string): boolean {
+  return !!l && !esVineta(l) && l.length <= 90 && !/[.;]$/.test(l) && !/^\p{Ll}/u.test(l);
+}
+
 function leerExperiencia(lineas: string[]): Trabajo[] {
   const limpias = lineas.map((l) => l.trim());
   const anclas: number[] = [];
@@ -323,7 +334,7 @@ function leerExperiencia(lineas: string[]): Trabajo[] {
     for (let i = ancla - 1; i > consumidoHasta && antes.length < 2; i--) {
       const l = limpias[i];
       if (!l) break;
-      if (esVineta(l) || l.length > 90) break;
+      if (!pareceCabecera(l)) break;
       antes.unshift(l);
     }
     const siguienteAncla = anclas[k + 1] ?? limpias.length;
@@ -332,7 +343,7 @@ function leerExperiencia(lineas: string[]): Trabajo[] {
     if (k + 1 < anclas.length) {
       let i = siguienteAncla - 1;
       let reservadas = 0;
-      while (i > ancla && reservadas < 2 && limpias[i] && !esVineta(limpias[i]) && limpias[i].length <= 90) {
+      while (i > ancla && reservadas < 2 && limpias[i] && pareceCabecera(limpias[i])) {
         i--;
         reservadas++;
       }
@@ -349,14 +360,17 @@ function leerExperiencia(lineas: string[]): Trabajo[] {
     asignarCabecera(partes, t);
 
     const resumen: string[] = [];
+    // Algunos PDF dibujan las viñetas como gráficos y al extraer el texto se pierden: entonces cada oración que empieza
+    // en una línea nueva es un logro, y las líneas que siguen a una oración sin terminar la continúan.
+    const sinVinetas = !limpias.slice(i, fin).some(esVineta);
     for (; i < fin; i++) {
       const l = limpias[i];
       if (!l) continue;
+      const ultimo = t.highlights[t.highlights.length - 1];
       if (esVineta(l)) t.highlights.push(sinVineta(l));
-      else if (t.highlights.length && !/[.:]$/.test(t.highlights[t.highlights.length - 1]) && /^\p{Ll}/u.test(l)) {
-        // Viñeta partida en dos líneas.
-        t.highlights[t.highlights.length - 1] += ` ${l}`;
-      } else resumen.push(l);
+      else if (ultimo !== undefined && !/[.!?:]$/.test(ultimo)) t.highlights[t.highlights.length - 1] = `${ultimo} ${l}`;
+      else if (sinVinetas) t.highlights.push(l);
+      else resumen.push(l);
     }
     if (resumen.length) t.summary = resumen.join(" ");
     consumidoHasta = fin - 1;
@@ -368,9 +382,12 @@ function leerExperiencia(lineas: string[]): Trabajo[] {
 // ---------------------------------------------------------------------------------------------------------------
 // Educación
 
-const RE_INSTITUCION = /\b(?:universidad|university|instituto|institute|tecnol[oó]gico|polit[eé]cnic[oa]|college|escuela|school|colegio|academia|academy|facultad|unam|ipn|itesm|uam|udg|uanl|tec de monterrey|platzi|coursera|udemy|bootcamp)\b/i;
+const RE_INSTITUCION = /\b(?:universidad|university|instituto|institute|tecnol[oó]gico|polit[eé]cnic[oa]|college|escuela|school|colegio|academia|academy|facultad|unam|ipn|itesm|uam|udg|uanl|tec de monterrey|platzi|coursera|udemy|bootcamp|tripleten|henry|ironhack|coderhouse|le wagon|digital house|academlo|bedu)\b/i;
+// «B.A.» / «B.B.A.» terminan en punto, así que van fuera del \b final.
 const RE_GRADO =
-  /\b(?:licenciatura|licenciad[oa]|ingenier[ií]a|ingenier[oa]|maestr[ií]a|m[aá]ster|doctorado|diplomado|especialidad|t[eé]cnico superior|t[eé]cnic[oa]|tsu|bachillerato|preparatoria|bachelor(?:'s)?|master(?:'s)?|mba|ph\.?d|doctorate|associate(?:'s)?|diploma|bootcamp|b\.?sc?|m\.?sc?)\b/i;
+  /\b(?:licenciatura|licenciad[oa]|ingenier[ií]a|ingenier[oa]|maestr[ií]a|m[aá]ster|doctorado|diplomado|especialidad|t[eé]cnico superior|t[eé]cnic[oa]|tsu|bachillerato|preparatoria|bachelor(?:'s)?|master(?:'s)?|mba|ph\.?d|doctorate|associate(?:'s)?|diploma|bootcamp|program|programa|b\.?sc?|m\.?sc?)\b|\bb\.b?\.?a\.(?=\s|,|$)/i;
+
+const tieneFecha = (l: string) => RE_FECHA_SOLA.test(prep(l).folded);
 
 function leerEducacion(lineas: string[]): Estudio[] {
   // Un bloque por grupo de líneas separadas por renglón en blanco o por una nueva institución.
@@ -382,7 +399,8 @@ function leerEducacion(lineas: string[]): Estudio[] {
       actual = [];
       continue;
     }
-    if (actual.length && RE_INSTITUCION.test(l) && actual.some((a) => RE_INSTITUCION.test(a))) {
+    // Nueva entrada: otra institución, o una segunda fecha (formato de una línea «Grado | Escuela | 2009 - 2013»).
+    if (actual.length && ((RE_INSTITUCION.test(l) && actual.some((a) => RE_INSTITUCION.test(a))) || (tieneFecha(l) && actual.some(tieneFecha)))) {
       bloques.push(actual);
       actual = [];
     }
@@ -452,7 +470,10 @@ function leerHabilidades(texto: string, seccion: string[] | undefined): PerfilJs
   for (const l of seccion ?? []) {
     const sinEtiqueta = sinVineta(l.trim()).replace(/^[^:]{1,30}:\s*/, "");
     for (const item of sinEtiqueta.split(/\s*[,;|•·]\s*|\s+\/\s+/)) {
-      const t = limpiarBordes(item);
+      // «SQL (PostgreSQL, H2)» se parte por comas: quitar el paréntesis que quedó suelto.
+      let t = limpiarBordes(item);
+      if (t.endsWith(")") && !t.includes("(")) t = t.slice(0, -1).trim();
+      if (t.startsWith("(") && !t.includes(")")) t = t.slice(1).trim();
       if (t.length < 2 || t.length > 40 || /^\d+$/.test(t)) continue;
       const f = prep(t).folded;
       if (conocidas.has(f) || detectarHabilidades(t).length) continue;
@@ -501,14 +522,51 @@ function leerCertificaciones(seccion: string[] | undefined): PerfilJson["certifi
     if (!t || t.length > 160) continue;
     const sola = RE_FECHA_SOLA.exec(prep(t).folded);
     const sinFecha = sola ? limpiarBordes(t.slice(0, sola.index) + " " + t.slice(sola.index + sola[0].length)) : t;
-    const [name, issuer] = sinFecha.split(/\s+(?:—|–|-|\||·)\s+|\s*,\s+/).map(limpiarBordes);
+    // Con «|» las columnas son claras («Nombre - nivel | Emisor | 2024»); si no, separar por guion o coma.
+    const [name, issuer] = (sinFecha.includes("|") ? sinFecha.split(/\s*\|\s*/) : sinFecha.split(/\s+(?:—|–|-|·)\s+|\s*,\s+/)).map(limpiarBordes);
     if (!name) continue;
     out.push({ name, ...(issuer ? { issuer } : {}), ...(sola ? { date: normalizarFecha(sola[1]) } : {}) });
   }
   return out.slice(0, 30);
 }
 
+const CAMPO_PROYECTO = /^(value|valor|description|descripcion|repository|repositorio|repo|link|url|demo|stack|tech stack|tecnologias|engineering outcome|engineering focus|outcome|resultado|impact|impacto)\s*:\s*/i;
+
+/** Proyectos con campos etiquetados: «Nombre | Tipo», y debajo «Value:», «Repository:», «Stack:»… */
+function proyectosConCampos(lineas: string[]): PerfilJson["projects"] {
+  const out: { name: string; partes: string[]; url?: string }[] = [];
+  let p: (typeof out)[number] | undefined;
+  let continuaDescripcion = false;
+  for (const crudo of lineas) {
+    const l = sinVineta(crudo.trim());
+    if (!l) continue;
+    const m = CAMPO_PROYECTO.exec(l);
+    if (m && p) {
+      const resto = l.slice(m[0].length).trim();
+      if (/^(repository|repositorio|repo|link|url|demo)$/i.test(m[1])) {
+        const u = new RegExp(RE_URL.source, "i").exec(resto)?.[0];
+        if (u) p.url = urlCompleta(u);
+        continuaDescripcion = false;
+      } else {
+        p.partes.push(/stack|tecnolog/i.test(m[1]) ? `Stack: ${resto}` : resto);
+        continuaDescripcion = true;
+      }
+    } else if (p && continuaDescripcion && !/\s\|\s/.test(l) && !/[.!?]$/.test(p.partes[p.partes.length - 1] ?? ".")) {
+      p.partes[p.partes.length - 1] += ` ${l}`;
+    } else {
+      p = { name: limpiarBordes(l.split(/\s+\|\s+/)[0]), partes: [] };
+      out.push(p);
+      continuaDescripcion = false;
+    }
+  }
+  return out
+    .filter((x) => x.name)
+    .map((x) => ({ name: x.name, ...(x.partes.length ? { description: x.partes.join(" ") } : {}), ...(x.url ? { url: x.url } : {}) }))
+    .slice(0, 20);
+}
+
 function leerProyectos(seccion: string[] | undefined): PerfilJson["projects"] {
+  if (seccion?.some((l) => CAMPO_PROYECTO.test(sinVineta(l.trim())))) return proyectosConCampos(seccion);
   const out: PerfilJson["projects"] = [];
   for (const l of seccion ?? []) {
     const t = l.trim();

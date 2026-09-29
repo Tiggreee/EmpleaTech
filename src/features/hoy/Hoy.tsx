@@ -102,7 +102,12 @@ export default function Hoy() {
       <Encabezado
         titulo="Tu cola de hoy"
         descripcion="Las vacantes que mejor encajan, con tu CV y carta listos. Tu trabajo: revisar, abrir el formulario y enviar."
-        acciones={<Boton variante="secundario" onClick={() => void buscar()} disabled={ocupado === "buscar"}>{ocupado === "buscar" ? "Buscando…" : "Buscar más"}</Boton>}
+        acciones={
+          <>
+            <EnlaceBoton variante="secundario" href="/autollenado">Autollenado</EnlaceBoton>
+            <Boton variante="secundario" onClick={() => void buscar()} disabled={ocupado === "buscar"}>{ocupado === "buscar" ? "Buscando…" : "Buscar más"}</Boton>
+          </>
+        }
       />
 
       {msg && <Aviso tono={msg.tono} className="mb-6">{msg.texto}</Aviso>}

@@ -3,6 +3,7 @@ import { aniosDeExperiencia, perfilATexto, prepararDocumentos, type IdiomaDoc } 
 import { cvATexto } from "@/core/documentos/formato";
 import { detectarIdioma, prep } from "@/core/analisis/texto";
 import type { DatosAutollenado } from "@/core/autollenado/campos";
+import { estudioMasAlto } from "@/core/autollenado/estudios";
 import { claveDePostulacion, clavesDeVacante } from "@/core/autollenado/url";
 import type { PerfilJson } from "@/core/perfil/estructurado";
 import { cvActivo, estructuradoDe } from "@/core/perfil/perfil";
@@ -81,6 +82,7 @@ function datosDelPerfil(p: PerfilJson, extra: Pick<DatosAutollenado, "respuestas
     empresaActual: actual?.name,
     puestoActual: actual?.position,
     aniosExperiencia: aniosDeExperiencia(p, extra.respuestas, ahora),
+    estudios: estudioMasAlto(p.education, ahora),
     ...extra,
   };
 }

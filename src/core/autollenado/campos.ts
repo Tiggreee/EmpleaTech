@@ -1,6 +1,7 @@
 import { detectarIdioma, prep } from "../analisis/texto";
 import { ETIQUETAS, PREFIERO_NO_DECIR, fechaDeInicio, type Respuestas } from "../perfil/respuestas";
 import { paisesDeTexto } from "../vacantes/paises";
+import { NOMBRE_NIVEL, cumpleNivel, nivelQuePide, opcionDeNivel, type EstudiosForm } from "./estudios";
 
 /** Qué dato del perfil va en cada campo de un formulario de postulación. */
 export type Campo =
@@ -26,6 +27,11 @@ export type Campo =
   | "aniosExperiencia"
   | "ingles"
   | "reubicacion"
+  | "tieneTitulo"
+  | "nivelEstudios"
+  | "escuela"
+  | "carrera"
+  | "anioGraduacion"
   | "carta"
   | "cv"
   | "genero"
@@ -51,6 +57,8 @@ export interface DatosAutollenado {
   empresaActual?: string;
   puestoActual?: string;
   aniosExperiencia?: number;
+  /** Tu estudio terminado de mayor nivel (un bootcamp no cuenta como título). */
+  estudios?: EstudiosForm;
   respuestas: Respuestas;
   carta?: string;
   cvTexto?: string;
@@ -97,6 +105,18 @@ const REGLAS: [Campo, RegExp][] = [
   ["patrocinio", /\b(sponsor(ship)?|patrocinio|visa)\b/],
   ["autorizacion", /\b(authori[sz]ed to work|work authori[sz]ation|legally (able|eligible|authori[sz]ed|permitted)|right to work|eligible to work|autorizad[oa] para trabajar|permiso de trabajo|puedes trabajar legalmente)\b/],
   ["reubicacion", /\b(relocat\w*|reubica\w*|mudar(te|se)|cambiar de ciudad)\b/],
+  [
+    "tieneTitulo",
+    /\b(do you (have|hold|possess)|have you (completed|earned|obtained|finished)|cuentas con|tienes|has (terminado|concluido))\b.*\b(degree|bachelor\w*|master\w*|diploma|ph ?d|titulo|licenciatura|maestria|doctorado|high school|preparatoria)\b/,
+  ],
+  [
+    "nivelEstudios",
+    /\b(highest (level of )?(education|degree|qualification)|education(al)? level|level of (education|study)|nivel (maximo )?(de )?estudios|nivel academico|grado (academico|maximo)|ultimo grado de estudios|escolaridad)\b|^(degree|degree type|titulo|grado|grado academico)$/,
+  ],
+  ["anioGraduacion", /\b(graduation (year|date)|year of graduation|year (you )?graduated|when did you graduate|ano de (graduacion|egreso)|fecha de (graduacion|egreso|titulacion))\b/],
+  // «Carrera» sola también es «trayectoria» («cuéntanos de tu carrera»): solo cuando pregunta qué estudiaste.
+  ["carrera", /\b(field of study|area of study|major|discipline|carrera universitaria|que carrera (estudiaste|cursaste)|nombre de la carrera|area de estudios?)\b/],
+  ["escuela", /\b(school|university|college|alma mater|universidad|escuela|institucion educativa)\b/],
   ["salario", /\b(salary|compensation|pay expectations?|pretension\w*|expectativa salarial|sueldo|salario|remuneracion|rate expectations?)\b/],
   ["fechaInicio", /\b(start date|when can you start|earliest start|available to start|notice period|disponibilidad|fecha de (inicio|ingreso)|cuando (puedes|podrias) (empezar|iniciar))\b/],
   ["aniosExperiencia", /\b(years of (relevant |professional |work )?experience|how many years|anos de experiencia|cuantos anos)\b/],
@@ -218,6 +238,14 @@ export function valorTexto(campo: Campo, d: DatosAutollenado, idioma: IdiomaForm
       return d.carta;
     case "cv":
       return d.cvTexto;
+    case "nivelEstudios":
+      return d.estudios ? NOMBRE_NIVEL[idioma][d.estudios.nivel] : undefined;
+    case "escuela":
+      return d.estudios?.escuela;
+    case "carrera":
+      return d.estudios?.carrera;
+    case "anioGraduacion":
+      return d.estudios?.anioFin;
     default:
       return undefined;
   }
@@ -237,6 +265,11 @@ export function valorSiNo(campo: Campo, d: DatosAutollenado, etiqueta: string): 
       return r.requierePatrocinio;
     case "reubicacion":
       return r.reubicacion;
+    case "tieneTitulo": {
+      // Sin título detectado no se contesta «no»: puede que tu CV simplemente no lo diga.
+      const pide = nivelQuePide(etiqueta);
+      return pide && d.estudios ? cumpleNivel(d.estudios.nivel, pide) : undefined;
+    }
     default:
       return undefined;
   }
@@ -291,6 +324,13 @@ export function elegirOpcion(campo: Campo | null, d: DatosAutollenado, etiqueta:
         if (/less|menos|under/i.test(o)) return n < nums[0];
         return nums.length >= 2 ? n >= nums[0] && n <= nums[1] : n === nums[0];
       });
+    }
+    case "nivelEstudios":
+      return d.estudios ? opcionDeNivel(d.estudios.nivel, opciones) : -1;
+    case "escuela":
+    case "carrera": {
+      const valor = campo === "escuela" ? d.estudios?.escuela : d.estudios?.carrera;
+      return valor ? opciones.findIndex((o) => normalizarEtiqueta(o) === normalizarEtiqueta(valor)) : -1;
     }
     default:
       return -1;

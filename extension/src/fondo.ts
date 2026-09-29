@@ -13,7 +13,9 @@ async function pedir(ruta: string, init?: RequestInit): Promise<unknown> {
 
 type Mensaje = { tipo: "datos"; url: string } | { tipo: "evento"; cuerpo: Record<string, unknown> };
 
-chrome.runtime.onMessage.addListener((msg: Mensaje, _remitente, responder) => {
+chrome.runtime.onMessage.addListener((msg: Mensaje, remitente, responder) => {
+  // Solo nuestros propios scripts de contenido; nunca otra extensión.
+  if (remitente.id !== chrome.runtime.id) return false;
   const tarea = msg.tipo === "datos" ? pedir(`/api/autollenado?url=${encodeURIComponent(msg.url)}`) : pedir("/api/autollenado", { method: "POST", body: JSON.stringify(msg.cuerpo) });
   tarea
     .then((datos) => responder({ ok: true, datos }))

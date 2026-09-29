@@ -18,7 +18,7 @@ export default defineConfig({
     { name: "movil", use: { ...devices["Pixel 7"] } },
   ],
   webServer: {
-    command: `npm run build && npx next start -p ${PUERTO}`,
+    command: `npm run build && npx next start -H 127.0.0.1 -p ${PUERTO}`,
     url: `http://localhost:${PUERTO}`,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,

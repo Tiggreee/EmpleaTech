@@ -4,6 +4,7 @@ import { sanitizarResumen } from "@/core/analisis/resumen";
 import { PERFIL_VACIO, sanitizarPerfil, type EstadoPerfil } from "@/core/perfil/perfil";
 import { detectarAlertas } from "@/core/radar/radar";
 import { analizarOferta, sanitizar, type Postulacion } from "@/core/seguimiento/seguimiento";
+import { ErrorHttp } from "./api";
 import { getPool, withTransaction } from "./db";
 
 export interface EstadoPersistido {
@@ -25,7 +26,7 @@ function normalizarEntrada(payload: Partial<EstadoPersistido> | null | undefined
 
 function resumenSeguro(valor: unknown) {
   const resumen = sanitizarResumen(valor);
-  if (!resumen) throw new Error("Resumen de análisis inválido.");
+  if (!resumen) throw new ErrorHttp(400, "Resumen de análisis inválido.");
   return resumen;
 }
 

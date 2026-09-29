@@ -7,8 +7,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-empleatech_dev_only_local}
       POSTGRES_DB: ${POSTGRES_DB:-empleatech_mvp}
+    # Solo tu computadora: publicar en 0.0.0.0 abriría la base a cualquiera en tu misma red (WiFi, oficina).
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-empleatech_mvp}"]
       interval: 10s

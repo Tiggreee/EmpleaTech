@@ -20,6 +20,9 @@ const CSP = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // El arranque automático construye en su propia carpeta: así un build de desarrollo o de pruebas no le mueve el
+  // piso a la app que tienes abierta.
+  distDir: process.env.EMPLEATECH_DIST_DIR || ".next",
   turbopack: { root: __dirname },
   poweredByHeader: false,
   async headers() {

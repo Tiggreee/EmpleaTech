@@ -11,6 +11,15 @@ updates:
       todas-las-dependencias:
         patterns:
           - "*"
+    # Saltos mayores que rompen el lint o no corresponden a mi Node: los hago a mano cuando el ecosistema los soporte.
+    # (typescript-eslint aún no soporta TS 7; los tipos de Node siguen la versión que uso, la 22.)
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"

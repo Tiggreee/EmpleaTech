@@ -22,7 +22,7 @@ function Campo({ etiqueta, valor, onCambio, tipo = "text", placeholder, ancho }:
 
 function Grupo({ titulo, children, accion }: { titulo: string; children: ReactNode; accion?: ReactNode }) {
   return (
-    <fieldset className="border-t border-white/10 pt-4">
+    <fieldset className="border-t border-linea pt-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <legend className="text-sm font-semibold">{titulo}</legend>
         {accion}
@@ -88,7 +88,7 @@ export default function EditorPerfil({ perfil, editado, onGuardar, onReleer }: P
       <Grupo titulo={`Experiencia (${p.work.length})`} accion={<Boton pequeno variante="secundario" onClick={() => setP({ ...p, work: [...p.work, { highlights: [] }] })}>Agregar puesto</Boton>}>
         <ol className="space-y-4">
           {p.work.map((w, i) => (
-            <li key={i} className="rounded-xl border border-white/10 p-3">
+            <li key={i} className="rounded-xl border border-linea p-3">
               <div className="grid gap-2 sm:grid-cols-2">
                 <Campo etiqueta="Puesto" valor={w.position} onCambio={(x) => trabajo(i, { position: v(x) })} />
                 <Campo etiqueta="Empresa" valor={w.name} onCambio={(x) => trabajo(i, { name: v(x) })} />
@@ -115,7 +115,7 @@ export default function EditorPerfil({ perfil, editado, onGuardar, onReleer }: P
       <Grupo titulo={`Educación (${p.education.length})`} accion={<Boton pequeno variante="secundario" onClick={() => setP({ ...p, education: [...p.education, {}] })}>Agregar estudio</Boton>}>
         <ol className="space-y-3">
           {p.education.map((e, i) => (
-            <li key={i} className="grid gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-2">
+            <li key={i} className="grid gap-2 rounded-xl border border-linea p-3 sm:grid-cols-2">
               <Campo etiqueta="Institución" valor={e.institution} onCambio={(x) => estudio(i, { institution: v(x) })} />
               <Campo etiqueta="Grado" valor={e.studyType} onCambio={(x) => estudio(i, { studyType: v(x) })} placeholder="Licenciatura, Ingeniería…" />
               <Campo etiqueta="Área" valor={e.area} onCambio={(x) => estudio(i, { area: v(x) })} />
@@ -156,7 +156,7 @@ export default function EditorPerfil({ perfil, editado, onGuardar, onReleer }: P
         </ul>
       </Grupo>
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+      <div className="flex flex-wrap items-center gap-2 border-t border-linea pt-4">
         <Boton onClick={() => void guardar()} disabled={guardando}>{guardando ? "Guardando…" : "Guardar perfil"}</Boton>
         {editado && (
           <>

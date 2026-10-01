@@ -18,8 +18,8 @@ function Esqueleto() {
         Cargando tus datos…
       </p>
       <div className="mb-8 space-y-3" aria-hidden="true">
-        <div className="h-8 w-56 max-w-full animate-pulse rounded-lg bg-white/10" />
-        <div className="h-4 w-96 max-w-full animate-pulse rounded bg-white/5" />
+        <div className="h-8 w-56 max-w-full animate-pulse rounded-lg bg-superficie" />
+        <div className="h-4 w-96 max-w-full animate-pulse rounded bg-superficie/70" />
       </div>
       <div className="space-y-4" aria-hidden="true">
         {[0, 1, 2].map((i) => (

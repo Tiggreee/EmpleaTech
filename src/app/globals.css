@@ -1,17 +1,37 @@
 @import "tailwindcss";
 
+/*
+ * Estilo editorial suizo: papel claro, tinta negra, un solo acento naranja y tipografía grande.
+ * --naranja es para rellenos (siempre con texto negro encima); --cian quedó como nombre del acento para texto y
+ * enlaces (naranja oscuro, 5:1 sobre el fondo). Los colores de estado están oscurecidos para pasar AA en claro.
+ */
 :root {
-  --fondo: #05070f;
-  --superficie: rgba(255, 255, 255, 0.04);
-  --borde: rgba(255, 255, 255, 0.1);
-  --texto: #eaf0ff;
-  --tenue: #9aa7c7;
-  --cian: #22d3ee;
-  --violeta: #8b5cf6;
-  --ok: #34d399;
-  --aviso: #fbbf24;
-  --riesgo: #fb7185;
-  color-scheme: dark;
+  --fondo: #f3f3ef;
+  --papel: #fbfbf8;
+  --superficie: #e9e9e3;
+  --linea: #cfcfc7;
+  --borde: #0e0e0e;
+  --texto: #0e0e0e;
+  --tenue: #55554f;
+  --naranja: #ff4f1a;
+  --cian: #b43a0b;
+  --violeta: #0e0e0e;
+  --ok: #166534;
+  --aviso: #92400e;
+  --riesgo: #b91c1c;
+  color-scheme: light;
+}
+
+/* Esquinas rectas en todo: el estilo es de filetes y bloques, no de burbujas. Los círculos (full) se quedan. */
+@theme {
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
 }
 
 @theme inline {
@@ -23,32 +43,43 @@
   --color-ok: var(--ok);
   --color-aviso: var(--aviso);
   --color-riesgo: var(--riesgo);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-naranja: var(--naranja);
+  --color-papel: var(--papel);
+  --color-superficie: var(--superficie);
+  --color-linea: var(--linea);
+  --font-sans: var(--font-archivo);
+  --font-mono: var(--font-plex-mono);
 }
 
-body {
-  background:
-    radial-gradient(60rem 40rem at 85% -10%, rgba(139, 92, 246, 0.22), transparent 60%),
-    radial-gradient(50rem 36rem at -10% 0%, rgba(34, 211, 238, 0.14), transparent 60%),
-    var(--fondo);
-  background-attachment: fixed;
-  color: var(--texto);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+/* Base y componentes van en sus capas: así las utilidades de Tailwind (lg:hidden, !px-2…) siempre les ganan. */
+@layer base {
+  body {
+    background: var(--fondo);
+    color: var(--texto);
+    font-family: var(--font-archivo), system-ui, sans-serif;
+  }
+
+  /* Foco visible en todo lo que se puede usar con teclado: anillo negro separado, se ve sobre naranja y sobre papel. */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid var(--texto);
+    outline-offset: 2px;
+  }
+  #contenido:focus-visible { outline: none; }
 }
 
+@layer components {
+/* Tarjeta: papel con filete negro, sin sombras ni esquinas redondas. */
 .vidrio {
-  background: var(--superficie);
-  border: 1px solid var(--borde);
-  border-radius: 1rem;
-  backdrop-filter: blur(6px);
+  background: var(--papel);
+  border: 1.5px solid var(--borde);
 }
 
-.gradiente-texto {
-  background: linear-gradient(100deg, var(--cian), var(--violeta));
-  -webkit-background-clip: text;
-  background-clip: text;
+.gradiente-texto { color: var(--cian); }
+
+/* Número con contorno, como los índices de la cola. */
+.contorno {
   color: transparent;
+  -webkit-text-stroke: 1.5px var(--texto);
 }
 
 .boton {
@@ -56,40 +87,33 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.75rem;
   padding: 0.6rem 1.1rem;
   font-size: 0.875rem;
-  font-weight: 600;
-  background: linear-gradient(100deg, var(--cian), var(--violeta));
-  color: #05070f;
-  transition: filter 0.15s, transform 0.15s;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  background: var(--naranja);
+  color: var(--texto);
+  border: 2px solid var(--naranja);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.boton:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+.boton:hover:not(:disabled) { background: var(--texto); border-color: var(--texto); color: var(--fondo); }
 .boton:disabled { opacity: 0.4; cursor: not-allowed; }
 .boton-sec {
-  background: var(--superficie);
+  background: transparent;
   color: var(--texto);
-  border: 1px solid var(--borde);
+  border-color: var(--texto);
 }
 
 .campo {
   width: 100%;
-  border-radius: 0.75rem;
-  border: 1px solid var(--borde);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid var(--borde);
+  background: var(--papel);
   padding: 0.6rem 0.8rem;
   font-size: 0.875rem;
   color: var(--texto);
 }
-/* #7d89aa: 5.5:1 sobre el fondo de los campos (el anterior quedaba en 4.3, debajo de AA). */
-.campo::placeholder { color: #7d89aa; }
-
-/* Foco visible en todo lo que se puede usar con teclado, no solo en los botones con clase. */
-:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 2px solid var(--cian);
-  outline-offset: 2px;
-}
-#contenido:focus-visible { outline: none; }
+/* 5.6:1 sobre el papel de los campos. */
+.campo::placeholder { color: #6b6b63; }
 
 /* Con el tabulador, lo primero es saltarse el menú. */
 .saltar {
@@ -98,9 +122,8 @@ body {
   top: 0.75rem;
   z-index: 50;
   transform: translateY(-200%);
-  border-radius: 0.75rem;
-  background: var(--cian);
-  color: #05070f;
+  background: var(--naranja);
+  color: var(--texto);
   padding: 0.6rem 1rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -121,7 +144,7 @@ body {
 .hoja {
   background: #fff;
   color: #111;
-  border-radius: 0.75rem;
+  border: 1.5px solid var(--borde);
   padding: 2.25rem 2.5rem;
   font-size: 0.8125rem;
   line-height: 1.5;
@@ -129,6 +152,7 @@ body {
 .hoja h1 { font-size: 1.5rem; font-weight: 700; color: #000; }
 .hoja h2 { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #000; border-bottom: 1px solid #ccc; padding-bottom: 0.15rem; margin: 1.1rem 0 0.5rem; }
 .hoja a { color: #111; }
+}
 
 @media print {
   body { background: #fff !important; color: #000 !important; }

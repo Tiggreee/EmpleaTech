@@ -9,7 +9,7 @@ import { MAX_FUENTES_ACTIVAS, type FuenteDeEmpresas } from "@/core/vacantes/fuen
 import type { PreferenciasBusqueda } from "@/core/vacantes/preferencias";
 import type { FuenteId } from "@/core/vacantes/vacante";
 import { useDatosApp } from "@/storage/hooks";
-import { Aviso, Boton, Encabezado, EnlaceBoton, Insignia, Tarjeta, Vacio, cx, type Tono } from "@/ui/ui";
+import { Aviso, Bloques, Boton, Encabezado, EnlaceBoton, Insignia, Puntaje, Tarjeta, Vacio, cx, type Tono } from "@/ui/ui";
 import { MODALIDAD, TONO_RECOMENDACION, hace, nombreFuente, pedir, salario, type DatosVacantes as Datos, type EstadoVacante as Estado, type FuenteDisponible as Fuente, type Guardada } from "./cliente";
 
 const PESTANAS: { estado: Estado; texto: string }[] = [
@@ -35,7 +35,7 @@ function Preferencias({ inicial, fuentes, onGuardar }: { inicial: PreferenciasBu
     const bloqueada = !f.disponible || (conTope && !activa && llenas);
     return (
       <li key={f.id}>
-        <label className={cx("flex h-full gap-2 rounded-xl border p-3 text-sm", activa ? "border-cian/50 bg-cian/5" : "border-white/10", bloqueada && !activa && "opacity-60")}>
+        <label className={cx("flex h-full gap-2 rounded-xl border p-3 text-sm", activa ? "border-cian/50 bg-cian/5" : "border-linea", bloqueada && !activa && "opacity-60")}>
           <input type="checkbox" className="mt-0.5" checked={activa} disabled={bloqueada && !activa} onChange={(e) => alternar(f.id, e.target.checked)} />
           <span>
             <span className="font-medium">{f.nombre}</span>
@@ -111,17 +111,35 @@ function TarjetaVacante({ item, ahora, onGuardar, onDescartar }: { item: Guardad
   };
   const fuente = nombreFuente(v.fuente);
   return (
-    <article className="vidrio p-5" aria-label={`${v.titulo} en ${v.empresa}`}>
+    <article className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-4 border-b border-texto py-6 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-6" aria-label={`${v.titulo} en ${v.empresa}`}>
+      <div>
+        <span className="sm:hidden">
+          <Puntaje valor={prioridad.valor} etiqueta="prioridad" tamano={72} />
+        </span>
+        <span className="hidden sm:block">
+          <Puntaje valor={prioridad.valor} etiqueta="prioridad" tamano={88} />
+        </span>
+        {prioridad.valor !== null && <span className="sr-only">Prioridad {prioridad.valor} de 100</span>}
+      </div>
+      <div className="min-w-0">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="font-semibold">{v.titulo}</h3>
-          <p className="text-sm text-tenue">{v.empresa}</p>
+          <h3 className="text-xl font-extrabold leading-tight tracking-tight sm:text-2xl">{v.titulo}</h3>
+          <p className="mt-1 font-mono text-xs uppercase tracking-wider text-tenue">
+            {v.empresa} / {fuente}
+          </p>
         </div>
-        <div className="text-right">
-          {prioridad.valor !== null && <p className="text-2xl font-semibold" aria-label={`Prioridad ${prioridad.valor} de 100`}>{prioridad.valor}</p>}
-          <Insignia tono={TONO_RECOMENDACION[prioridad.recomendacion]}>{ETIQUETA_RECOMENDACION[prioridad.recomendacion]}</Insignia>
-        </div>
+        <Insignia tono={TONO_RECOMENDACION[prioridad.recomendacion]}>{ETIQUETA_RECOMENDACION[prioridad.recomendacion]}</Insignia>
       </div>
+
+      {resumen.total > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <Bloques cubiertas={resumen.cubiertas} total={resumen.total} />
+          <span className="font-mono text-xs">
+            Cubres {resumen.cubiertas} de {resumen.total} requisitos
+          </span>
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap gap-1.5">
         {v.modalidad && <Insignia>{MODALIDAD[v.modalidad]}</Insignia>}
@@ -134,7 +152,7 @@ function TarjetaVacante({ item, ahora, onGuardar, onDescartar }: { item: Guardad
       </div>
 
       <details className="mt-3 text-sm">
-        <summary className="cursor-pointer text-cian">Por qué esta prioridad</summary>
+        <summary className="cursor-pointer font-semibold underline underline-offset-4">Por qué esta prioridad</summary>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-tenue">
           {prioridad.factores.map((f) => <li key={f}>{f}</li>)}
           {resumen.brechas.length > 0 && <li>Te falta: {resumen.brechas.join(", ")}</li>}
@@ -149,9 +167,10 @@ function TarjetaVacante({ item, ahora, onGuardar, onDescartar }: { item: Guardad
             {v.tipo === "proyecto" ? "Preparar propuesta" : "Preparar CV y carta"}
           </EnlaceBoton>
         )}
-        <a className="ml-auto text-xs text-cian underline-offset-2 hover:underline" href={v.url} target="_blank" rel="noopener noreferrer">
+        <a className="ml-auto font-mono text-xs uppercase tracking-wider underline underline-offset-4" href={v.url} target="_blank" rel="noopener noreferrer">
           Ver en {fuente} ↗
         </a>
+      </div>
       </div>
     </article>
   );
@@ -301,7 +320,7 @@ export default function Vacantes() {
                 type="button"
                 aria-selected={pestana === p.estado}
                 onClick={() => setPestana(p.estado)}
-                className={cx("rounded-lg px-3 py-1.5 text-sm", pestana === p.estado ? "bg-white/10 text-white" : "text-tenue hover:text-white")}
+                className={cx("rounded-lg px-3 py-1.5 text-sm", pestana === p.estado ? "bg-texto text-fondo" : "text-tenue hover:text-texto")}
               >
                 {p.texto} ({datos.conteo[p.estado]})
               </button>
@@ -313,7 +332,7 @@ export default function Vacantes() {
               {pestana === "nueva" && cv ? "Pulsa «Buscar ahora» para traer vacantes de tus plataformas." : undefined}
             </Vacio>
           ) : (
-            <div className="space-y-4">
+            <div className="border-t-2 border-texto">
               {datos.vacantes.map((item) => (
                 <TarjetaVacante
                   key={item.vacante.id}

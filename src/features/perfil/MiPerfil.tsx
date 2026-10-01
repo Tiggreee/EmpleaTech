@@ -59,7 +59,7 @@ function SiNo({ nombre, valor, onCambio }: { nombre: string; valor: boolean | un
 
 function Pregunta({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
-    <div className="border-t border-white/10 pt-4">
+    <div className="border-t border-linea pt-4">
       <p className="mb-2 text-sm font-medium">{titulo}</p>
       {children}
     </div>
@@ -173,7 +173,7 @@ function FormRespuestas({ inicial, onGuardar }: { inicial: Respuestas; onGuardar
         </select>
       </Pregunta>
 
-      <details className="border-t border-white/10 pt-4">
+      <details className="border-t border-linea pt-4">
         <summary className="cursor-pointer text-sm text-cian">Encuesta voluntaria de diversidad (formularios de EE. UU.)</summary>
         <p className="mt-2 text-xs text-tenue">Es opcional y no afecta tu postulación. Por defecto respondemos «Prefiero no decir».</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -193,7 +193,7 @@ function FormRespuestas({ inicial, onGuardar }: { inicial: Respuestas; onGuardar
         </div>
       </details>
 
-      <div className="border-t border-white/10 pt-4">
+      <div className="border-t border-linea pt-4">
         <Boton
           disabled={guardando}
           onClick={() => {

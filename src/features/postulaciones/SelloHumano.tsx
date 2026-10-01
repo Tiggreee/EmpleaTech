@@ -9,7 +9,7 @@ export default function SelloHumano({ onConfirmar }: { onConfirmar: (items: stri
   const id = useId();
   const completo = SELLO_ITEMS.every((i) => marcados.includes(i));
   return (
-    <details className="mt-2 rounded-lg border border-white/10 bg-white/5 p-2 text-xs">
+    <details className="mt-2 rounded-lg border border-linea bg-superficie/70 p-2 text-xs">
       <summary className="cursor-pointer text-cian">Marcar con sello humano</summary>
       <p className="mt-2 text-tenue">La app no envía nada por ti. Confirma cada punto y registra la postulación solo cuando la hayas enviado tú.</p>
       <fieldset className="mt-2 space-y-1.5">

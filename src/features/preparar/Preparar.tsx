@@ -183,7 +183,7 @@ export default function Preparar({ vacanteId, postulacionId }: Props) {
                   type="button"
                   aria-selected={vista === v}
                   onClick={() => setVista(v)}
-                  className={cx("rounded-lg px-3 py-1.5 text-sm", vista === v ? "bg-white/10 text-white" : "text-tenue hover:text-white")}
+                  className={cx("rounded-lg px-3 py-1.5 text-sm", vista === v ? "bg-texto text-fondo" : "text-tenue hover:text-texto")}
                 >
                   {NOMBRE_VISTA[v]}
                 </button>

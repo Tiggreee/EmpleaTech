@@ -5,10 +5,11 @@ import { useCallback, useEffect, useState } from "react";
 import { cvActivo } from "@/core/perfil/perfil";
 import { ETIQUETA_RECOMENDACION } from "@/core/seguimiento/prioridad";
 import { SELLO_ITEMS, analizarOferta, crear, marcarPostulada } from "@/core/seguimiento/seguimiento";
-import { armarCola, motivoPrincipal } from "@/core/vacantes/cola";
+import { armarCola } from "@/core/vacantes/cola";
 import { MODALIDAD, TONO_RECOMENDACION, cambiarEstadoVacante, hace, nombreFuente, pedir, salario, type DatosVacantes, type Guardada } from "@/features/vacantes/cliente";
 import { useDatosApp } from "@/storage/hooks";
-import { Aviso, Boton, Encabezado, EnlaceBoton, Insignia, Vacio, type Tono } from "@/ui/ui";
+import { Aviso, Bloques, Boton, Encabezado, EnlaceBoton, Insignia, Puntaje, Vacio, type Tono } from "@/ui/ui";
+import Mazo from "./Mazo";
 
 const CONFIRMACION = `Confirma que ya la enviaste tú:\n\n${SELLO_ITEMS.map((s) => `• ${s}`).join("\n")}`;
 
@@ -83,7 +84,7 @@ export default function Hoy() {
 
   if (!cargando && !cv) {
     return (
-      <main className="mx-auto max-w-4xl px-5 py-10">
+      <main className="mx-auto max-w-6xl px-5 py-10">
         <Encabezado titulo="Tu cola de hoy" />
         <Vacio titulo="Primero sube tu CV" accion={<EnlaceBoton href="/cv">Subir mi CV</EnlaceBoton>}>
           Con tu CV buscamos, ordenamos y preparamos todo. Tú solo revisas y envías.
@@ -96,121 +97,176 @@ export default function Hoy() {
   const cola = datos && ahora && prefs ? armarCola(datos.vacantes, postulaciones, { metaDiaria: prefs.metaDiaria, topePorFuente: prefs.topePorFuente }, ahora) : null;
   const meta = prefs?.metaDiaria ?? 0;
   const avance = cola && meta ? Math.min(100, Math.round((cola.enviadasHoy / meta) * 100)) : 0;
+  const pendientes = cola?.items.length ?? 0;
+  const fecha = ahora?.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
 
   return (
-    <main className="mx-auto max-w-4xl px-5 py-10">
-      <Encabezado
-        titulo="Tu cola de hoy"
-        descripcion="Las vacantes que mejor encajan, con tu CV y carta listos. Tu trabajo: revisar, abrir el formulario y enviar."
-        acciones={
-          <>
-            <EnlaceBoton variante="secundario" href="/autollenado">Autollenado</EnlaceBoton>
-            <Boton variante="secundario" onClick={() => void buscar()} disabled={ocupado === "buscar"}>{ocupado === "buscar" ? "Buscando…" : "Buscar más"}</Boton>
-          </>
-        }
-      />
+    <main className="mx-auto max-w-6xl px-5 py-10">
+      <section className="mb-10 grid items-end gap-8 border-b-2 border-texto pb-8 md:grid-cols-[minmax(0,1fr)_auto]">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-widest text-tenue">{fecha ?? "Hoy"}</p>
+          <h1 className="mt-3 text-5xl font-black leading-[0.9] tracking-[-0.05em] sm:text-7xl lg:text-8xl">
+            {cola && pendientes > 0 ? `Hoy: ${pendientes} por enviar.` : "Tu cola de hoy"}
+          </h1>
+          <p className="mt-4 max-w-xl text-lg text-tenue">Cada una ya trae su CV y su carta. Tú revisas, abres el formulario y envías.</p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Boton variante="secundario" onClick={() => void buscar()} disabled={ocupado === "buscar"}>
+              {ocupado === "buscar" ? "Buscando…" : "Buscar más"}
+            </Boton>
+            <EnlaceBoton variante="secundario" href="/autollenado">
+              Autollenado
+            </EnlaceBoton>
+          </div>
+        </div>
 
-      {msg && <Aviso tono={msg.tono} className="mb-6">{msg.texto}</Aviso>}
-
-      {cola && prefs && (
-        <section className="mb-6" aria-label="Avance del día">
-          <div className="mb-1 flex items-baseline justify-between text-sm">
-            <p>
-              <span className="text-2xl font-semibold">{cola.enviadasHoy}</span> <span className="text-tenue">de {meta} enviadas hoy</span>
+        {cola && prefs && (
+          <div aria-label="Avance del día" role="group" className="md:text-right">
+            <p aria-hidden="true" className="text-6xl font-black leading-[0.85] tracking-[-0.06em] sm:text-8xl lg:text-9xl">
+              {cola.enviadasHoy}
+              <span className="text-linea">/{meta}</span>
             </p>
-            <button type="button" className="text-xs text-cian" onClick={() => setAjustes(!ajustes)}>Ajustar meta</button>
+            <div className="mt-3 h-2 w-full bg-superficie md:ml-auto md:w-64" role="progressbar" aria-label="Avance de la meta diaria" aria-valuemin={0} aria-valuemax={100} aria-valuenow={avance}>
+              <div className="h-full bg-naranja" style={{ width: `${avance}%` }} />
+            </div>
+            <p className="mt-3 font-mono text-xs uppercase tracking-widest text-tenue">
+              <span>
+                {cola.enviadasHoy} de {meta} enviadas hoy
+              </span>
+              {" · "}
+              <button type="button" className="uppercase underline underline-offset-4 hover:text-texto" onClick={() => setAjustes(!ajustes)}>
+                Ajustar meta
+              </button>
+            </p>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-label="Avance de la meta diaria" aria-valuemin={0} aria-valuemax={100} aria-valuenow={avance}>
-            <div className="h-full bg-gradient-to-r from-cian to-violeta" style={{ width: `${avance}%` }} />
-          </div>
-          {ajustes && (
-            <form
-              className="mt-3 flex flex-wrap items-end gap-3 text-sm"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const f = new FormData(e.currentTarget);
-                void hacer("ajustes", async () => {
-                  await pedir("/api/vacantes", { method: "PUT", body: JSON.stringify({ ...prefs, metaDiaria: Number(f.get("meta")), topePorFuente: Number(f.get("tope")) }) });
-                  setAjustes(false);
-                  await recargar();
-                });
-              }}
-            >
-              <label>
-                <span className="mb-1 block text-xs text-tenue">Postulaciones al día</span>
-                <input name="meta" type="number" min={1} max={100} defaultValue={prefs.metaDiaria} className="campo w-28" />
-              </label>
-              <label>
-                <span className="mb-1 block text-xs text-tenue">Máximo por plataforma</span>
-                <input name="tope" type="number" min={1} max={50} defaultValue={prefs.topePorFuente} className="campo w-28" />
-              </label>
-              <Boton type="submit" pequeno>Guardar</Boton>
-            </form>
-          )}
-        </section>
+        )}
+      </section>
+
+      {ajustes && prefs && (
+        <form
+          className="mb-8 flex flex-wrap items-end gap-3 border-2 border-texto bg-papel p-4 text-sm"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const f = new FormData(e.currentTarget);
+            void hacer("ajustes", async () => {
+              await pedir("/api/vacantes", { method: "PUT", body: JSON.stringify({ ...prefs, metaDiaria: Number(f.get("meta")), topePorFuente: Number(f.get("tope")) }) });
+              setAjustes(false);
+              await recargar();
+            });
+          }}
+        >
+          <label>
+            <span className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-tenue">Postulaciones al día</span>
+            <input name="meta" type="number" min={1} max={100} defaultValue={prefs.metaDiaria} className="campo w-28" />
+          </label>
+          <label>
+            <span className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-tenue">Máximo por plataforma</span>
+            <input name="tope" type="number" min={1} max={50} defaultValue={prefs.topePorFuente} className="campo w-28" />
+          </label>
+          <Boton type="submit">Guardar</Boton>
+        </form>
+      )}
+
+      {msg && (
+        <Aviso tono={msg.tono} className="mb-6">
+          {msg.texto}
+        </Aviso>
+      )}
+
+      {!cola && !msg && (
+        <p role="status" className="font-mono text-xs uppercase tracking-widest text-tenue">
+          Armando tu cola…
+        </p>
       )}
 
       {cola && cola.faltanHoy === 0 && (
-        <Aviso tono="ok" titulo="¡Meta del día cumplida!">Descansa o, si quieres más, sube la meta. Mañana te esperan nuevas.</Aviso>
+        <Aviso tono="ok" titulo="¡Meta del día cumplida!">
+          Descansa o, si quieres más, sube la meta. Mañana te esperan nuevas.
+        </Aviso>
       )}
 
-      {cola && cola.faltanHoy > 0 && cola.items.length === 0 && (
+      {cola && cola.faltanHoy > 0 && pendientes === 0 && (
         <Vacio titulo="No hay vacantes listas en tu cola" accion={<Boton onClick={() => void buscar()} disabled={ocupado === "buscar"}>Buscar vacantes</Boton>}>
           Buscamos en tus plataformas y armamos la cola. Puedes ajustar qué buscar en{" "}
-          <Link className="text-cian underline" href="/vacantes">
+          <Link className="font-semibold underline underline-offset-4" href="/vacantes">
             Vacantes
           </Link>
           .
         </Vacio>
       )}
 
-      {cola && cola.items.length > 0 && (
-        <ol className="space-y-3">
-          {cola.items.map((item, i) => {
-            const v = item.vacante;
-            const g = item as Guardada;
-            const cuando = ahora ? hace(v.publicadaEn, ahora.getTime()) : null;
-            return (
-              <li key={v.id}>
-                <article className="vidrio p-4" aria-label={`${v.titulo} en ${v.empresa}`}>
-                  <div className="flex items-start gap-3">
-                    <span className="mt-0.5 w-6 shrink-0 text-right text-sm text-tenue">{i + 1}.</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <h3 className="font-semibold">{v.titulo}</h3>
-                          <p className="text-sm text-tenue">
-                            {v.empresa} · vía {nombreFuente(v.fuente)}
-                            {cuando ? ` · ${cuando}` : ""}
-                          </p>
+      {cola && pendientes > 0 && (
+        <>
+          <Mazo items={cola.items} ahora={ahora} ocupado={ocupado} onEnviada={(i) => enviada(i as Guardada)} onSaltar={(i) => saltar(i as Guardada)} />
+
+          <ol className="hidden border-t-2 border-texto md:block" aria-label="Cola de hoy">
+            {cola.items.map((item, i) => {
+              const v = item.vacante;
+              const g = item as Guardada;
+              const cuando = ahora ? hace(v.publicadaEn, ahora.getTime()) : null;
+              const sal = salario(v.salario);
+              const r = item.resumen;
+              const proyecto = v.tipo === "proyecto";
+              return (
+                <li key={v.id} className="border-b border-texto">
+                  <article className="grid grid-cols-[4.5rem_6rem_minmax(0,1fr)_15rem] items-start gap-6 py-7" aria-label={`${v.titulo} en ${v.empresa}`}>
+                    <span aria-hidden="true" className="contorno text-6xl font-black leading-[0.8] tracking-[-0.05em]">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <Puntaje valor={item.prioridad.valor} tamano={96} />
+                    <div className="flex min-w-0 flex-col gap-3">
+                      <h2 className="text-2xl font-extrabold leading-tight tracking-tight lg:text-3xl">{v.titulo}</h2>
+                      <p className="font-mono text-xs uppercase tracking-wider text-tenue">
+                        {v.empresa} / vía {nombreFuente(v.fuente)}
+                        {cuando ? ` / ${cuando}` : ""}
+                      </p>
+                      {r.total > 0 ? (
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Bloques cubiertas={r.cubiertas} total={r.total} />
+                          <span className="font-mono text-xs">
+                            Cubres {r.cubiertas} de {r.total} requisitos
+                          </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {item.prioridad.valor !== null && <span className="text-xl font-semibold">{item.prioridad.valor}</span>}
-                          <Insignia tono={TONO_RECOMENDACION[item.prioridad.recomendacion]}>{ETIQUETA_RECOMENDACION[item.prioridad.recomendacion]}</Insignia>
-                        </div>
-                      </div>
-                      <p className="mt-1 text-sm">{motivoPrincipal(item)}</p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
+                      ) : (
+                        <p className="text-sm text-tenue">{item.prioridad.factores[0] ?? "Sin análisis suficiente."}</p>
+                      )}
+                      {r.brechas.length > 0 && (
+                        <p className="text-sm">
+                          Te falta: <strong>{r.brechas.slice(0, 3).join(", ")}</strong>
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-1.5">
+                        <Insignia tono={TONO_RECOMENDACION[item.prioridad.recomendacion]}>{ETIQUETA_RECOMENDACION[item.prioridad.recomendacion]}</Insignia>
                         {v.modalidad && <Insignia>{MODALIDAD[v.modalidad]}</Insignia>}
-                        {salario(v.salario) && <Insignia tono="ok">{salario(v.salario)}</Insignia>}
+                        {sal && <Insignia tono="ok">{sal}</Insignia>}
                         {v.ats && <Insignia tono="cian">Formulario {v.ats}</Insignia>}
-                        {v.tipo === "proyecto" && <Insignia tono="cian">Proyecto freelance{v.propuestas !== undefined ? ` · ${v.propuestas} propuestas` : ""}</Insignia>}
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <EnlaceBoton pequeno variante="secundario" href={`/preparar?vacante=${encodeURIComponent(v.id)}`}>{v.tipo === "proyecto" ? "Propuesta" : "CV y carta"}</EnlaceBoton>
-                        <a className="boton boton-sec !px-2.5 !py-1.5 !text-xs" href={v.urlPostular ?? v.url} target="_blank" rel="noopener noreferrer">
-                          {v.tipo === "proyecto" ? "Abrir proyecto ↗" : "Abrir formulario ↗"}
-                        </a>
-                        <Boton pequeno disabled={ocupado === v.id} onClick={() => void enviada(g)}>Ya la envié</Boton>
-                        <Boton pequeno variante="secundario" disabled={ocupado === v.id} onClick={() => void saltar(g)}>Saltar</Boton>
+                        {proyecto && <Insignia tono="cian">Proyecto freelance{v.propuestas !== undefined ? ` · ${v.propuestas} propuestas` : ""}</Insignia>}
                       </div>
                     </div>
-                  </div>
-                </article>
-              </li>
-            );
-          })}
-        </ol>
+                    <div className="flex flex-col gap-2">
+                      <EnlaceBoton href={`/preparar?vacante=${encodeURIComponent(v.id)}`}>{proyecto ? "Propuesta →" : "CV y carta →"}</EnlaceBoton>
+                      <a className="boton boton-sec" href={v.urlPostular ?? v.url} target="_blank" rel="noopener noreferrer">
+                        {proyecto ? "Abrir proyecto ↗" : "Abrir formulario ↗"}
+                      </a>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Boton variante="secundario" disabled={ocupado === v.id} onClick={() => void enviada(g)}>
+                          Ya la envié
+                        </Boton>
+                        <button
+                          type="button"
+                          className="text-sm font-semibold text-tenue underline underline-offset-4 hover:text-texto disabled:opacity-40"
+                          disabled={ocupado === v.id}
+                          onClick={() => void saltar(g)}
+                        >
+                          Saltar
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                </li>
+              );
+            })}
+          </ol>
+        </>
       )}
     </main>
   );

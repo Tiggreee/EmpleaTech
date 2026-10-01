@@ -46,7 +46,7 @@ export default function PwaBarra() {
         </div>
       )}
       {instalar && (
-        <div className="border-b border-white/10 bg-white/5 px-5 py-2 text-center text-xs">
+        <div className="border-b border-linea bg-superficie/70 px-5 py-2 text-center text-xs">
           <span className="text-tenue">Instala {APP_NAME} como app para abrirla más rápido. </span>
           <button
             className="font-medium text-cian underline underline-offset-4"

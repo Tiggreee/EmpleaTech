@@ -74,7 +74,7 @@ export default function TarjetaPostulacion({ p, prioridad, ahora, aplicar }: Pro
       {p.oferta && (
         <details className="mt-2 text-xs">
           <summary className="cursor-pointer text-tenue">Ver oferta guardada</summary>
-          <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-black/30 p-2 font-mono text-[11px] leading-relaxed text-tenue">{p.oferta.texto}</pre>
+          <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-superficie p-2 font-mono text-[11px] leading-relaxed text-tenue">{p.oferta.texto}</pre>
         </details>
       )}
 

@@ -20,7 +20,7 @@ function Barras({ grupos, promedio, titulo }: { grupos: Grupo[]; promedio: numbe
         {grupos.map((g) => (
           <li key={g.valor} className="grid grid-cols-[minmax(7rem,11rem)_1fr_auto] items-center gap-3 text-sm" title={`Con 95 % de confianza, entre ${pct(g.bajo)} y ${pct(g.alto)}.`}>
             <span className="truncate">{g.valor}</span>
-            <span className="relative h-2 rounded-full bg-white/5" aria-hidden="true">
+            <span className="relative h-2 rounded-full bg-superficie/70" aria-hidden="true">
               <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${(g.tasa / escala) * 100}%`, minWidth: g.tasa ? 4 : 0, background: g.pocosDatos ? BARRA_POCOS_DATOS : BARRA }} />
               <span className="absolute -inset-y-1 w-0.5 bg-[var(--tenue)]" style={{ left: `${(promedio / escala) * 100}%` }} />
             </span>

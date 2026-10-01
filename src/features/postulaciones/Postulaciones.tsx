@@ -91,7 +91,7 @@ export default function Postulaciones() {
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
           <input type="search" className="campo !w-auto min-w-48 !py-1.5 !text-xs" placeholder="Buscar empresa o puesto" aria-label="Buscar" value={buscar} onChange={(e) => setBuscar(e.target.value)} />
           <label className="flex items-center gap-1.5 text-tenue"><input type="checkbox" checked={ocultarCerradas} onChange={(e) => setOcultarCerradas(e.target.checked)} /> Ocultar cerradas</label>
-          <span className="mx-1 hidden h-4 w-px bg-white/15 sm:block" />
+          <span className="mx-1 hidden h-4 w-px bg-superficie sm:block" />
           <Boton pequeno variante="secundario" disabled={!lista.length} onClick={() => descargar("empleatech-postulaciones.json", exportarJSON(lista, new Date()), "application/json")}>Exportar JSON</Boton>
           <Boton pequeno variante="secundario" disabled={!lista.length} onClick={() => descargar("empleatech-postulaciones.csv", exportarCSV(lista), "text/csv")}>Exportar CSV</Boton>
           <label className="boton boton-sec cursor-pointer !px-2.5 !py-1.5 !text-xs">
@@ -123,7 +123,7 @@ export default function Postulaciones() {
                   {ordenadas.map(({ postulacion, prioridad: pr }) => (
                     <TarjetaPostulacion key={postulacion.id} p={postulacion} prioridad={pr} ahora={ahora} aplicar={aplicar} />
                   ))}
-                  {items.length === 0 && <p className="rounded-xl border border-dashed border-white/10 p-4 text-center text-xs text-tenue">Vacío</p>}
+                  {items.length === 0 && <p className="rounded-xl border border-dashed border-linea p-4 text-center text-xs text-tenue">Vacío</p>}
                 </div>
               </section>
             );

@@ -84,7 +84,7 @@ test.describe("PWA", () => {
     await page.goto("/");
     await expect(page).toHaveTitle(/EmpleaTech/);
     expect(await page.locator('meta[property="og:image"]').getAttribute("content")).toContain("/opengraph-image");
-    expect(await page.locator('meta[name="theme-color"]').getAttribute("content")).toBe("#05070f");
+    expect(await page.locator('meta[name="theme-color"]').getAttribute("content")).toBe("#f3f3ef");
     expect(await page.locator("html").getAttribute("lang")).toBe("es");
   });
 

@@ -103,7 +103,7 @@ export default function Entrar() {
               </Boton>
               <button
                 type="button"
-                className="text-sm text-tenue underline underline-offset-4 hover:text-white"
+                className="text-sm text-tenue underline underline-offset-4 hover:text-texto"
                 onClick={() => {
                   setConRespaldo(!conRespaldo);
                   setCodigoApp("");

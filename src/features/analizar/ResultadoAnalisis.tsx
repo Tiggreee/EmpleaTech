@@ -21,7 +21,7 @@ export default function ResultadoAnalisis({ resultado, diagnostico, prioridad }:
       ))}
 
       <Tarjeta className="flex flex-col items-center gap-6 sm:flex-row">
-        {resultado.score !== null ? <Anillo valor={resultado.score} /> : <div className="grid h-[130px] w-[130px] place-items-center rounded-full border border-white/10 text-tenue">—</div>}
+        {resultado.score !== null ? <Anillo valor={resultado.score} /> : <div className="grid h-[130px] w-[130px] place-items-center rounded-full border border-linea text-tenue">—</div>}
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold">{resultado.veredicto}</h2>
@@ -30,7 +30,7 @@ export default function ResultadoAnalisis({ resultado, diagnostico, prioridad }:
           <p className="mt-1 text-sm text-tenue">Oferta en {idioma(resultado.idiomaOferta)} · CV en {idioma(resultado.idiomaCv)}</p>
           <dl className="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
             {(["requerida", "funcion", "deseable"] as const).map((n) => (
-              <div key={n} className="rounded-xl bg-white/5 px-2 py-2">
+              <div key={n} className="rounded-xl bg-superficie/70 px-2 py-2">
                 <dt className="text-xs text-tenue">{nombreNivel(n)}</dt>
                 <dd className="font-semibold">{resultado.desglose[n].cubiertas}/{resultado.desglose[n].total}</dd>
               </div>
@@ -95,7 +95,7 @@ export default function ResultadoAnalisis({ resultado, diagnostico, prioridad }:
               </thead>
               <tbody>
                 {resultado.hallazgos.map((h) => (
-                  <tr key={h.id} className="border-t border-white/10 align-top">
+                  <tr key={h.id} className="border-t border-linea align-top">
                     <td className="py-2.5 pr-3 font-medium">{h.label}</td>
                     <td className="pr-3 text-tenue">{nombreNivel(h.nivel)}</td>
                     <td className="pr-3"><Insignia tono={ESTADO[h.estado].tono}>{ESTADO[h.estado].texto}</Insignia></td>

@@ -23,14 +23,8 @@ const ENLACES = [
 export function Logo({ tamano = 24 }: { tamano?: number }) {
   return (
     <svg width={tamano} height={tamano} viewBox="0 0 32 32" aria-hidden="true">
-      <defs>
-        <linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#22d3ee" />
-          <stop offset="1" stopColor="#8b5cf6" />
-        </linearGradient>
-      </defs>
-      <path d="M16 2 L29 28 H3 Z" fill="none" stroke="url(#logo-g)" strokeWidth="2.5" strokeLinejoin="round" />
-      <circle cx="16" cy="3.5" r="2.6" fill="url(#logo-g)" />
+      <path d="M16 2 L29 28 H3 Z" fill="none" stroke="var(--texto)" strokeWidth="3" strokeLinejoin="miter" />
+      <circle cx="16" cy="3.5" r="2.8" fill="var(--naranja)" />
     </svg>
   );
 }
@@ -65,9 +59,9 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
               aria-current={activo ? "page" : undefined}
               onClick={() => setAbierto(false)}
               className={cx(
-                "rounded-lg transition-colors",
-                movil ? "flex min-h-11 items-center px-3" : "px-2.5 py-1.5",
-                activo ? "bg-white/10 text-white" : "text-tenue hover:text-white",
+                "font-mono text-xs uppercase tracking-wider transition-colors",
+                movil ? "flex min-h-11 items-center border-b border-linea px-1 text-sm" : "border-b-2 px-0.5 py-1",
+                activo ? (movil ? "font-semibold text-texto" : "border-naranja text-texto") : cx("text-tenue hover:text-texto", !movil && "border-transparent"),
               )}
             >
               {e.texto}
@@ -80,7 +74,7 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
           <button
             type="button"
             onClick={() => void salir()}
-            className={cx("rounded-lg text-tenue transition-colors hover:text-white", movil ? "flex min-h-11 w-full items-center px-3" : "px-2.5 py-1.5")}
+            className={cx("font-mono text-xs uppercase tracking-wider text-tenue transition-colors hover:text-texto", movil ? "flex min-h-11 w-full items-center px-1 text-sm" : "py-1")}
           >
             Salir
           </button>
@@ -90,7 +84,7 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
   );
 
   return (
-    <header className="sticky top-0 z-20 border-b border-white/10 bg-[#05070f]/80 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b-2 border-texto bg-fondo/95 backdrop-blur">
       <nav
         className="mx-auto max-w-6xl px-5 py-3"
         aria-label="Principal"
@@ -99,11 +93,11 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
         }}
       >
         <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight" onClick={() => setAbierto(false)}>
+          <Link href="/" className="flex items-center gap-2 text-xl font-black uppercase tracking-[-0.04em]" onClick={() => setAbierto(false)}>
             <Logo />
             <span>{APP_NAME}</span>
           </Link>
-          <ul className="hidden flex-wrap items-center justify-end gap-0.5 text-sm lg:flex">{elementos(false)}</ul>
+          <ul className="hidden flex-wrap items-center justify-end gap-x-5 gap-y-1 lg:flex">{elementos(false)}</ul>
           <button
             type="button"
             className="boton boton-sec lg:hidden"
@@ -115,7 +109,7 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
           </button>
         </div>
         {abierto && (
-          <ul id="menu-principal" className="mt-3 grid gap-1 border-t border-white/10 pt-3 text-sm sm:grid-cols-2 lg:hidden">
+          <ul id="menu-principal" className="mt-3 grid gap-x-6 border-t-2 border-texto pt-2 sm:grid-cols-2 lg:hidden">
             {elementos(true)}
           </ul>
         )}

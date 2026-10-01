@@ -8,26 +8,20 @@ export const contentType = "image/png";
 export default function OpenGraph() {
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: 80, background: "linear-gradient(135deg, #05070f 40%, #1a1140 100%)", color: "#eaf0ff" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <svg width="72" height="72" viewBox="0 0 32 32">
-            <defs>
-              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#22d3ee" />
-                <stop offset="1" stopColor="#8b5cf6" />
-              </linearGradient>
-            </defs>
-            <path d="M16 3.5 L28.5 28 H3.5 Z" fill="none" stroke="url(#g)" strokeWidth="2.6" strokeLinejoin="round" />
-            <circle cx="16" cy="3.6" r="2.7" fill="url(#g)" />
+      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: 80, background: "#f3f3ef", color: "#0e0e0e" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 20, borderBottom: "4px solid #0e0e0e", paddingBottom: 24 }}>
+          <svg width="64" height="64" viewBox="0 0 32 32">
+            <path d="M16 3.5 L28.5 28 H3.5 Z" fill="none" stroke="#ff4f1a" strokeWidth="3" strokeLinejoin="miter" />
+            <circle cx="16" cy="3.6" r="2.7" fill="#ff4f1a" />
           </svg>
-          <div style={{ fontSize: 56, fontWeight: 700 }}>{APP_NAME}</div>
+          <div style={{ fontSize: 52, fontWeight: 900, letterSpacing: -2 }}>{APP_NAME.toUpperCase()}</div>
         </div>
-        <div style={{ marginTop: 40, fontSize: 76, fontWeight: 700, lineHeight: 1.05, display: "flex", flexWrap: "wrap" }}>
+        <div style={{ marginTop: 44, fontSize: 104, fontWeight: 900, lineHeight: 0.92, letterSpacing: -5, display: "flex", flexWrap: "wrap" }}>
           <span>Tu búsqueda,</span>
-          <span style={{ color: "#22d3ee", marginLeft: 18 }}>con datos.</span>
+          <span style={{ color: "#b43a0b", marginLeft: 24 }}>con datos.</span>
         </div>
-        <div style={{ marginTop: 32, fontSize: 32, color: "#9aa7c7", maxWidth: 920 }}>
-          Analiza CVs y ofertas, detecta riesgos y guarda tu historial en Postgres local para probar un flujo full-stack real.
+        <div style={{ marginTop: 36, fontSize: 32, color: "#55554f", maxWidth: 960 }}>
+          Vacantes ordenadas contra tu CV, CV y carta a la medida, y seguimiento de cada postulación.
         </div>
       </div>
     ),

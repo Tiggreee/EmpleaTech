@@ -15,7 +15,7 @@ test.describe("Qué te funciona", () => {
     await expect(page.getByText("Aún no has enviado postulaciones")).toBeVisible();
   });
 
-  test("cuenta lo enviado, lo desglosa por plataforma y no concluye con pocos datos", async ({ page }) => {
+  test("cuenta lo enviado, lo desglosa por plataforma y no concluye con pocos datos", async ({ page, isMobile }) => {
     await page.goto("/cv");
     await page.getByRole("button", { name: /Subir mi CV|Agregar CV/ }).first().click();
     await page.getByLabel(/Texto del CV/).fill(CV);
@@ -25,6 +25,16 @@ test.describe("Qué te funciona", () => {
     await page.goto("/hoy");
     await page.getByRole("button", { name: "Buscar vacantes" }).click();
     const wizeline = page.getByRole("article", { name: /Wizeline/ });
+    if (isMobile) {
+      // En el celular la cola va de una en una: salta hasta llegar a la de Wizeline.
+      const contador = page.getByText(/^1 de \d+ en tu cola$/);
+      await expect(contador).toBeVisible();
+      while (!(await wizeline.isVisible())) {
+        const antes = (await contador.textContent()) ?? "";
+        await page.getByRole("button", { name: "Saltar" }).click();
+        await expect(contador).not.toHaveText(antes);
+      }
+    }
     await expect(wizeline).toBeVisible();
     page.once("dialog", (d) => void d.accept());
     await wizeline.getByRole("button", { name: "Ya la envié" }).click();

@@ -7,7 +7,7 @@ const CLASE: Record<Valor, string> = {
   si: "bg-ok/15 text-ok",
   no: "bg-riesgo/15 text-riesgo",
   parcial: "bg-aviso/15 text-aviso",
-  sd: "bg-white/10 text-tenue",
+  sd: "bg-superficie text-tenue",
 };
 
 function Celda({ v }: { v: Valor }) {
@@ -37,7 +37,7 @@ export default function InteligenciaPage() {
           </thead>
           <tbody>
             {FILAS.map((f) => (
-              <tr key={f.capacidad} className="border-t border-white/10 align-top">
+              <tr key={f.capacidad} className="border-t border-linea align-top">
                 <th scope="row" className="py-3 pr-3 font-medium">{f.capacidad}</th>
                 <td className="pr-3"><Celda v={f.app} /></td>
                 <td className="pr-3"><Celda v={f.jobright} /></td>

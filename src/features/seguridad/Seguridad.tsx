@@ -42,7 +42,7 @@ function CodigosRespaldo({ codigos, listo }: { codigos: string[]; listo: () => v
       </Aviso>
       <ul className="grid grid-cols-2 gap-2 font-mono text-sm" aria-label="Códigos de respaldo">
         {codigos.map((c) => (
-          <li key={c} className="rounded-lg bg-white/5 px-3 py-2 text-center">
+          <li key={c} className="rounded-lg bg-superficie/70 px-3 py-2 text-center">
             {c}
           </li>
         ))}

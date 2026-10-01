@@ -146,7 +146,7 @@ export default function Freelance() {
                 </Boton>
               </label>
             ) : (
-              <p className="rounded-xl border border-dashed border-white/15 p-6 text-sm text-tenue">La propuesta aparece aquí en cuanto pegues la descripción.</p>
+              <p className="rounded-xl border border-dashed border-linea p-6 text-sm text-tenue">La propuesta aparece aquí en cuanto pegues la descripción.</p>
             )}
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function Freelance() {
                   type="button"
                   aria-selected={idioma === i}
                   onClick={() => setIdioma(i)}
-                  className={cx("rounded-lg px-3 py-1 text-sm", idioma === i ? "bg-white/10 text-white" : "text-tenue hover:text-white")}
+                  className={cx("rounded-lg px-3 py-1 text-sm", idioma === i ? "bg-texto text-fondo" : "text-tenue hover:text-texto")}
                 >
                   {i === "en" ? "English" : "Español"}
                 </button>
@@ -192,7 +192,7 @@ export default function Freelance() {
           {PLATAFORMAS.map((p) => {
             const estado = seguimiento?.[p.id] ?? "pendiente";
             return (
-              <li key={p.id} className={cx("rounded-xl border p-4 text-sm", estado === "registrado" ? "border-ok/40 bg-ok/5" : "border-white/10", estado === "descartada" && "opacity-60")} aria-label={p.nombre}>
+              <li key={p.id} className={cx("rounded-xl border p-4 text-sm", estado === "registrado" ? "border-ok/40 bg-ok/5" : "border-linea", estado === "descartada" && "opacity-60")} aria-label={p.nombre}>
                 <div className="flex items-start justify-between gap-2">
                   <a className="font-semibold hover:underline" href={p.sitio} target="_blank" rel="noopener noreferrer">
                     {p.nombre} ↗

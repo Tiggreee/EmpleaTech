@@ -16,7 +16,7 @@ const pct = (x: number | null) => (x === null ? "—" : `${Math.round(x * 100)}%
 function Paso({ hecho, n, titulo, detalle, href, accion }: { hecho: boolean; n: number; titulo: string; detalle: string; href: string; accion: string }) {
   return (
     <li className="vidrio flex items-start gap-4 p-4">
-      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-semibold ${hecho ? "bg-ok/20 text-ok" : "bg-white/10"}`} aria-hidden="true">{hecho ? "?" : n}</span>
+      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-semibold ${hecho ? "bg-ok/20 text-ok" : "bg-superficie"}`} aria-hidden="true">{hecho ? "?" : n}</span>
       <div className="flex-1">
         <p className="font-medium">{titulo}{hecho && <span className="sr-only"> (hecho)</span>}</p>
         <p className="text-sm text-tenue">{detalle}</p>
@@ -78,7 +78,7 @@ export default function Panel() {
             <ul className="space-y-2">
               {hoy.map((a) => (
                 <li key={a.id}>
-                  <Link href={`/postulaciones#p-${a.id}`} className="block rounded-lg px-2 py-2 hover:bg-white/5">
+                  <Link href={`/postulaciones#p-${a.id}`} className="block rounded-lg px-2 py-2 hover:bg-superficie">
                     <p className="text-sm font-medium">{a.puesto} <span className="font-normal text-tenue">· {a.empresa}</span></p>
                     <p className={`text-xs ${a.tono === "urgente" ? "text-riesgo" : "text-aviso"}`}>{a.texto}</p>
                   </Link>
@@ -143,7 +143,7 @@ export default function Panel() {
           {ESTADOS.map((e) => (
             <li key={e} className="flex items-center gap-3 text-sm">
               <span className="w-24 shrink-0 text-tenue">{ETIQUETA_ESTADO[e]}</span>
-              <span className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
+              <span className="h-2 flex-1 overflow-hidden rounded-full bg-superficie">
                 <span className="block h-full rounded-full bg-gradient-to-r from-cian to-violeta" style={{ width: `${(stats.porEstado[e] / maxEmbudo) * 100}%` }} />
               </span>
               <span className="w-6 text-right font-medium">{stats.porEstado[e]}</span>

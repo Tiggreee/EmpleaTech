@@ -17,7 +17,7 @@ export default function Medidor({ contrasena, id }: { contrasena: string; id: st
     <div className="mt-2">
       <div className="flex gap-1" aria-hidden="true">
         {[1, 2, 3, 4].map((n) => (
-          <span key={n} className={cx("h-1.5 flex-1 rounded-full", n <= llenas ? COLOR[f.nivel] : "bg-white/10")} />
+          <span key={n} className={cx("h-1.5 flex-1 rounded-full", n <= llenas ? COLOR[f.nivel] : "bg-superficie")} />
         ))}
       </div>
       <p id={id} className="mt-1 text-xs text-tenue" aria-live="polite">

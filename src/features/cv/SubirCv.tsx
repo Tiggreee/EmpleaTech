@@ -51,7 +51,7 @@ export default function SubirCv({ onTexto, etiqueta = "Sube tu CV (PDF, DOCX, OD
         className={cx(
           "flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed text-center transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-cian",
           compacto ? "px-4 py-4" : "px-6 py-8",
-          arrastrando ? "border-cian bg-cian/10" : "border-white/20 hover:border-white/40",
+          arrastrando ? "border-cian bg-cian/10" : "border-linea hover:border-texto",
         )}
       >
         <span className="text-sm font-medium">{etiqueta}</span>

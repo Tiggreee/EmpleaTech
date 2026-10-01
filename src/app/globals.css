@@ -81,10 +81,36 @@ body {
   font-size: 0.875rem;
   color: var(--texto);
 }
-.campo::placeholder { color: #6b7799; }
-.campo:focus-visible, .boton:focus-visible, a:focus-visible, summary:focus-visible {
+/* #7d89aa: 5.5:1 sobre el fondo de los campos (el anterior quedaba en 4.3, debajo de AA). */
+.campo::placeholder { color: #7d89aa; }
+
+/* Foco visible en todo lo que se puede usar con teclado, no solo en los botones con clase. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--cian);
   outline-offset: 2px;
+}
+#contenido:focus-visible { outline: none; }
+
+/* Con el tabulador, lo primero es saltarse el menú. */
+.saltar {
+  position: fixed;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 50;
+  transform: translateY(-200%);
+  border-radius: 0.75rem;
+  background: var(--cian);
+  color: #05070f;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.saltar:focus-visible { transform: none; }
+
+/* En pantallas táctiles, nada que se toque mide menos de 44 px. */
+@media (pointer: coarse) {
+  .boton, .campo { min-height: 44px; }
+  input[type="checkbox"], input[type="radio"] { width: 1.25rem; height: 1.25rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -61,7 +61,7 @@ function Entendido({ texto }: { texto: string }) {
 }
 
 export default function MiCv() {
-  const { perfil, postulaciones, guardarEstado, error } = useDatosApp();
+  const { perfil, postulaciones, guardarEstado } = useDatosApp();
   const [borrador, setBorrador] = useState<Borrador | null>(null);
   const [msg, setMsg] = useState<{ tono: "ok" | "riesgo"; texto: string } | null>(null);
   const activo = cvActivo(perfil);
@@ -108,7 +108,6 @@ export default function MiCv() {
         acciones={!borrador && perfil.cvs.length < MAX_CVS ? <Boton onClick={() => setBorrador({ nombre: "", texto: "" })}>Agregar CV</Boton> : undefined}
       />
 
-      {error && <Aviso tono="aviso" className="mb-6">{error}</Aviso>}
       {msg && <Aviso tono={msg.tono} className="mb-6">{msg.texto}</Aviso>}
 
       {borrador && (

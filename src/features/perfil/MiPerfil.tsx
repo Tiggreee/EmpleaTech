@@ -209,7 +209,7 @@ function FormRespuestas({ inicial, onGuardar }: { inicial: Respuestas; onGuardar
 }
 
 export default function MiPerfil() {
-  const { perfil, guardarEstado, cargando, error } = useDatosApp();
+  const { perfil, guardarEstado, cargando } = useDatosApp();
   const [msg, setMsg] = useState<{ tono: "ok" | "riesgo"; texto: string } | null>(null);
   const activo = cvActivo(perfil);
   const faltanRespuestas = pendientes(perfil.respuestas).length;
@@ -231,7 +231,6 @@ export default function MiPerfil() {
         acciones={faltanRespuestas ? <Insignia tono="aviso">{`${faltanRespuestas} respuestas pendientes`}</Insignia> : <Insignia tono="ok">Respuestas listas</Insignia>}
       />
 
-      {error && <Aviso tono="aviso" className="mb-6">{error}</Aviso>}
       {msg && <Aviso tono={msg.tono} className="mb-6">{msg.texto}</Aviso>}
 
       <div className="space-y-6">

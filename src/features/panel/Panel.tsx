@@ -27,7 +27,7 @@ function Paso({ hecho, n, titulo, detalle, href, accion }: { hecho: boolean; n: 
 }
 
 export default function Panel() {
-  const { postulaciones: lista, perfil, error } = useDatosApp();
+  const { postulaciones: lista, perfil } = useDatosApp();
   const [ahora] = useState(() => new Date());
   const cv = cvActivo(perfil);
 
@@ -51,7 +51,6 @@ export default function Panel() {
     <main className="mx-auto max-w-6xl px-5 py-10">
       <Encabezado titulo="Tu panel" descripcion={ahora.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" })} acciones={<EnlaceBoton href="/analizar">Analizar una oferta</EnlaceBoton>} />
 
-      {error && <Aviso tono="aviso" className="mb-6">{error}</Aviso>}
 
       {empezando && (
         <section aria-labelledby="empezar" className="mb-10">

@@ -61,6 +61,11 @@ export default function Resultados() {
         descripcion="De todo lo que envías, qué llega a entrevista: por plataforma, nivel, modalidad, versión de CV y afinidad. Con estos datos la cola de hoy se reordena sola hacia lo que te responde."
       />
       {error && <Aviso tono="riesgo" className="mb-6">{error}</Aviso>}
+      {!d && !error && (
+        <p role="status" className="text-sm text-tenue">
+          Cargando tus resultados…
+        </p>
+      )}
 
       {d && d.total === 0 && (
         <Vacio titulo="Aún no has enviado postulaciones" accion={<EnlaceBoton href="/hoy">Ir a mi cola de hoy</EnlaceBoton>}>

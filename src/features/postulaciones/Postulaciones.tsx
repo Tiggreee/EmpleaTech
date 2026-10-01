@@ -19,7 +19,7 @@ function descargar(nombre: string, contenido: string, tipo: string) {
 const pct = (x: number | null) => (x === null ? "—" : `${Math.round(x * 100)}%`);
 
 export default function Postulaciones() {
-  const { postulaciones: lista, guardarEstado, error } = useDatosApp();
+  const { postulaciones: lista, guardarEstado } = useDatosApp();
   const [ahora, setAhora] = useState(() => new Date());
   const [empresa, setEmpresa] = useState("");
   const [puesto, setPuesto] = useState("");
@@ -72,7 +72,6 @@ export default function Postulaciones() {
         acciones={<EnlaceBoton href="/analizar">Analizar una oferta</EnlaceBoton>}
       />
 
-      {error && <Aviso tono="aviso" className="mb-6">{error}</Aviso>}
 
       <section aria-label="Resumen" className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Estadistica etiqueta="Total" valor={stats.total} />

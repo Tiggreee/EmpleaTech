@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { APP_NAME } from "@/config/app";
 import { borrarEstadoLocal } from "@/storage/almacenes";
+import { cx } from "@/ui/ui";
 
 const ENLACES = [
   { href: "/panel", texto: "Panel" },
@@ -42,41 +44,81 @@ async function salir() {
   window.location.href = "/entrar";
 }
 
-/** `conSesion`: la app vive en internet y pide contraseña; entonces aparecen «Seguridad» y «Salir». */
+/**
+ * `conSesion`: la app vive en internet y pide contraseña; entonces aparecen «Seguridad» y «Salir».
+ * En pantallas chicas los enlaces van detrás de «Menú»: doce enlaces pegados arriba se comían media pantalla.
+ */
 export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
   const ruta = usePathname();
+  const [abierto, setAbierto] = useState(false);
   if (ruta === "/entrar") return null;
   const enlaces = conSesion ? [...ENLACES, { href: "/seguridad", texto: "Seguridad" }] : ENLACES;
+
+  const elementos = (movil: boolean) => (
+    <>
+      {enlaces.map((e) => {
+        const activo = ruta === e.href;
+        return (
+          <li key={e.href}>
+            <Link
+              href={e.href}
+              aria-current={activo ? "page" : undefined}
+              onClick={() => setAbierto(false)}
+              className={cx(
+                "rounded-lg transition-colors",
+                movil ? "flex min-h-11 items-center px-3" : "px-2.5 py-1.5",
+                activo ? "bg-white/10 text-white" : "text-tenue hover:text-white",
+              )}
+            >
+              {e.texto}
+            </Link>
+          </li>
+        );
+      })}
+      {conSesion && (
+        <li>
+          <button
+            type="button"
+            onClick={() => void salir()}
+            className={cx("rounded-lg text-tenue transition-colors hover:text-white", movil ? "flex min-h-11 w-full items-center px-3" : "px-2.5 py-1.5")}
+          >
+            Salir
+          </button>
+        </li>
+      )}
+    </>
+  );
+
   return (
-    <header className="sticky top-0 z-20 border-b border-white/10 bg-[#05070f]/70 backdrop-blur">
-      <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-3" aria-label="Principal">
-        <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-          <Logo />
-          <span>{APP_NAME}</span>
-        </Link>
-        <ul className="flex flex-wrap items-center gap-0.5 text-sm">
-          {enlaces.map((e) => {
-            const activo = ruta === e.href;
-            return (
-              <li key={e.href}>
-                <Link
-                  href={e.href}
-                  aria-current={activo ? "page" : undefined}
-                  className={`rounded-lg px-2.5 py-1.5 transition-colors ${activo ? "bg-white/10 text-white" : "text-tenue hover:text-white"}`}
-                >
-                  {e.texto}
-                </Link>
-              </li>
-            );
-          })}
-          {conSesion && (
-            <li>
-              <button type="button" onClick={() => void salir()} className="rounded-lg px-2.5 py-1.5 text-tenue transition-colors hover:text-white">
-                Salir
-              </button>
-            </li>
-          )}
-        </ul>
+    <header className="sticky top-0 z-20 border-b border-white/10 bg-[#05070f]/80 backdrop-blur">
+      <nav
+        className="mx-auto max-w-6xl px-5 py-3"
+        aria-label="Principal"
+        onKeyDown={(e) => {
+          if (e.key === "Escape" && abierto) setAbierto(false);
+        }}
+      >
+        <div className="flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight" onClick={() => setAbierto(false)}>
+            <Logo />
+            <span>{APP_NAME}</span>
+          </Link>
+          <ul className="hidden flex-wrap items-center justify-end gap-0.5 text-sm lg:flex">{elementos(false)}</ul>
+          <button
+            type="button"
+            className="boton boton-sec lg:hidden"
+            aria-expanded={abierto}
+            aria-controls="menu-principal"
+            onClick={() => setAbierto(!abierto)}
+          >
+            {abierto ? "Cerrar" : "Menú"}
+          </button>
+        </div>
+        {abierto && (
+          <ul id="menu-principal" className="mt-3 grid gap-1 border-t border-white/10 pt-3 text-sm sm:grid-cols-2 lg:hidden">
+            {elementos(true)}
+          </ul>
+        )}
       </nav>
     </header>
   );

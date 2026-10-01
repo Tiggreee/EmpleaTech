@@ -17,7 +17,7 @@ import ResultadoAnalisis from "./ResultadoAnalisis";
 const MAX_ARCHIVO = 300_000;
 
 export default function Analizar() {
-  const { perfil, postulaciones, guardarEstado, error } = useDatosApp();
+  const { perfil, postulaciones, guardarEstado } = useDatosApp();
   const activo = cvActivo(perfil);
   const [cvElegido, setCvElegido] = useState<string | null>(null);
   const [cvManual, setCvManual] = useState("");
@@ -104,7 +104,6 @@ export default function Analizar() {
         }
       />
 
-      {error && <Aviso tono="aviso" className="mb-5">{error}</Aviso>}
 
       <div className="grid gap-5 md:grid-cols-2">
         <section aria-labelledby="cv-titulo">

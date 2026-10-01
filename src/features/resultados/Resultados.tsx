@@ -58,7 +58,7 @@ export default function Resultados() {
     <main className="mx-auto max-w-5xl px-5 py-10">
       <Encabezado
         titulo="Qué te funciona"
-        descripcion="De todo lo que envías, qué llega a entrevista: por plataforma, nivel, modalidad, versión de CV y afinidad. Con estos datos la cola de hoy se reordena sola hacia lo que te responde."
+        descripcion="De todo lo que envías, qué llega a entrevista: por plataforma, nivel, modalidad, versión de CV y afinidad. Con estos datos tus vacantes de hoy se reordenan solas hacia lo que te responde."
       />
       {error && <Aviso tono="riesgo" className="mb-6">{error}</Aviso>}
       {!d && !error && (
@@ -68,7 +68,7 @@ export default function Resultados() {
       )}
 
       {d && d.total === 0 && (
-        <Vacio titulo="Aún no has enviado postulaciones" accion={<EnlaceBoton href="/hoy">Ir a mi cola de hoy</EnlaceBoton>}>
+        <Vacio titulo="Aún no has enviado postulaciones" accion={<EnlaceBoton href="/hoy">Ir a mis vacantes de hoy</EnlaceBoton>}>
           En cuanto envíes, aquí verás qué te está funcionando. Cuando te llamen a entrevista, márcalo en Postulaciones.
         </Vacio>
       )}
@@ -80,7 +80,7 @@ export default function Resultados() {
             <Estadistica etiqueta="Llegaron a entrevista" valor={pct(d.tasa)} pista={`${d.entrevistas} de ${d.total}`} tono={d.suficiente && d.tasa && d.tasa >= 0.05 ? "ok" : undefined} />
             <Estadistica etiqueta="Ofertas" valor={d.ofertas} />
             <Estadistica etiqueta="Días a la entrevista" valor={d.diasPromedioRespuesta ?? "—"} pista="promedio desde que envías" />
-            <Estadistica etiqueta="Para concluir" valor={d.suficiente ? "Listo" : `${d.total}/${MIN_TOTAL}`} pista={d.suficiente ? "ya ajustamos tu cola" : "postulaciones enviadas"} />
+            <Estadistica etiqueta="Para concluir" valor={d.suficiente ? "Listo" : `${d.total}/${MIN_TOTAL}`} pista={d.suficiente ? "ya ajustamos tus vacantes" : "postulaciones enviadas"} />
           </div>
 
           <section aria-label="Recomendaciones" className="space-y-2">

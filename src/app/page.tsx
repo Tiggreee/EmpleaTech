@@ -14,14 +14,14 @@ export default function Inicio() {
       <section className="border-b-2 border-texto pb-12">
         <p className="font-mono text-xs uppercase tracking-widest text-tenue">Asistente personal de búsqueda de empleo</p>
         <h1 className="mt-4 max-w-5xl text-5xl font-black leading-[0.88] tracking-[-0.05em] sm:text-7xl lg:text-8xl">
-          Menos buscar. <span className="text-cian">Más enviar.</span>
+          Menos búsqueda. <span className="text-cian">Más resultados.</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-tenue sm:text-xl">
-          Cada mañana tienes una cola con las vacantes que mejor encajan con tu CV, cada una con su CV y su carta listos. Tú revisas y envías.
+          Cada mañana tienes las vacantes que mejor encajan con tu CV, cada una con su CV y su carta listos. Tú revisas y envías.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/hoy" className="boton">
-            Ver mi cola de hoy →
+            Ver mis vacantes de hoy →
           </Link>
           <Link href="/analizar" className="boton boton-sec">
             Analizar una oferta

@@ -26,8 +26,8 @@ test.describe("Qué te funciona", () => {
     await page.getByRole("button", { name: "Buscar vacantes" }).click();
     const wizeline = page.getByRole("article", { name: /Wizeline/ });
     if (isMobile) {
-      // En el celular la cola va de una en una: salta hasta llegar a la de Wizeline.
-      const contador = page.getByText(/^1 de \d+ en tu cola$/);
+      // En el celular las vacantes van de una en una: salta hasta llegar a la de Wizeline.
+      const contador = page.getByText(/^Vacante 1 de \d+$/);
       await expect(contador).toBeVisible();
       while (!(await wizeline.isVisible())) {
         const antes = (await contador.textContent()) ?? "";

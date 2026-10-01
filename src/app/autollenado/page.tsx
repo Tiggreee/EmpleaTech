@@ -6,7 +6,7 @@ export const metadata = { title: "Autollenado" };
 const PASOS = [
   { titulo: "Prepara la extensión", texto: "En la carpeta del proyecto ejecuta «npm run extension». Se crea la carpeta extension/dist." },
   { titulo: "Cárgala en Chrome", texto: "Abre chrome://extensions, activa «Modo de desarrollador» (arriba a la derecha) y pulsa «Cargar descomprimida». Elige la carpeta extension/dist." },
-  { titulo: "Úsala", texto: "Con EmpleaTech abierta, entra al formulario de una vacante (desde «Abrir formulario» en tu cola de hoy) y pulsa «Llenar con EmpleaTech» en el panel de la esquina." },
+  { titulo: "Úsala", texto: "Con EmpleaTech abierta, entra al formulario de una vacante (desde «Abrir formulario» en Hoy) y pulsa «Llenar con EmpleaTech» en el panel de la esquina." },
 ];
 
 export default function AutollenadoPage() {
@@ -15,7 +15,7 @@ export default function AutollenadoPage() {
       <Encabezado
         titulo="Autollenado de formularios"
         descripcion="Una extensión de Chrome llena los formularios de Greenhouse, Lever y Ashby con tu perfil, adjunta tu CV y tu carta para esa vacante, y marca en rojo lo que falta. En Workana, Upwork y Freelancer.com arma la propuesta del proyecto que tienes abierto y la pone en su cuadro. Nunca envía: el botón «Enviar» siempre lo presionas tú."
-        acciones={<EnlaceBoton variante="secundario" href="/hoy">Ir a mi cola</EnlaceBoton>}
+        acciones={<EnlaceBoton variante="secundario" href="/hoy">Ir a mis vacantes de hoy</EnlaceBoton>}
       />
       {process.env.EMPLEATECH_AUTH === "1" && <ConectarExtension />}
       <ol className="space-y-4">

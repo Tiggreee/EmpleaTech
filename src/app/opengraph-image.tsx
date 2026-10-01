@@ -17,8 +17,8 @@ export default function OpenGraph() {
           <div style={{ fontSize: 52, fontWeight: 900, letterSpacing: -2 }}>{APP_NAME.toUpperCase()}</div>
         </div>
         <div style={{ marginTop: 44, fontSize: 104, fontWeight: 900, lineHeight: 0.92, letterSpacing: -5, display: "flex", flexWrap: "wrap" }}>
-          <span>Tu búsqueda,</span>
-          <span style={{ color: "#b43a0b", marginLeft: 24 }}>con datos.</span>
+          <span>Menos búsqueda.</span>
+          <span style={{ color: "#b43a0b", marginLeft: 24 }}>Más resultados.</span>
         </div>
         <div style={{ marginTop: 36, fontSize: 32, color: "#55554f", maxWidth: 960 }}>
           Vacantes ordenadas contra tu CV, CV y carta a la medida, y seguimiento de cada postulación.

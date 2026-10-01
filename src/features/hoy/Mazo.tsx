@@ -19,7 +19,7 @@ interface Props {
 }
 
 /**
- * La cola en el celular: una vacante a la vez. Se desliza a la izquierda para saltarla y a la derecha cuando ya la
+ * Tus vacantes de hoy en el celular: una a la vez. Se desliza a la izquierda para saltarla y a la derecha cuando ya la
  * enviaste (pide confirmación, como el botón). Los tres botones hacen lo mismo para quien no quiera deslizar.
  */
 export default function Mazo({ items, ahora, ocupado, onEnviada, onSaltar }: Props) {
@@ -59,9 +59,9 @@ export default function Mazo({ items, ahora, ocupado, onEnviada, onSaltar }: Pro
   const pista = dx <= -40 ? "Saltar" : dx >= 40 ? "Ya la envié" : null;
 
   return (
-    <section aria-label="Cola de hoy, una a la vez" className="md:hidden">
+    <section aria-label="Vacantes de hoy, una a la vez" className="md:hidden">
       <div className="mb-3 flex items-center justify-between font-mono text-xs uppercase tracking-widest text-tenue">
-        <span>1 de {items.length} en tu cola</span>
+        <span>Vacante 1 de {items.length}</span>
         {pista && <span className={cx("font-semibold", dx < 0 ? "text-tenue" : "text-cian")}>{pista}</span>}
       </div>
 

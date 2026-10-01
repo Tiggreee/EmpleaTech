@@ -64,7 +64,7 @@ async function avisarEnvio(url: string) {
     panel ??= new Panel();
     panel.mostrar(`<p class="ok">${r.registrada ? `Registrada en tu tracker: ${esc(r.puesto)} en ${esc(r.empresa)}.` : "Esta postulación ya estaba registrada."}</p>`);
   } catch {
-    // Si la app no responde, se registra a mano con «Ya la envié» en la cola de hoy.
+    // Si la app no responde, se registra a mano con «Ya la envié» en Hoy.
   }
 }
 

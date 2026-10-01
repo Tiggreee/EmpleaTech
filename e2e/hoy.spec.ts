@@ -24,14 +24,14 @@ async function colaConVacantes(page: Page) {
   await expect(page.getByText(/Encontramos \d+ vacantes? nuevas?/)).toBeVisible();
 }
 
-test.describe("Cola de hoy", () => {
+test.describe("Vacantes de hoy", () => {
   test("sin CV pide subirlo", async ({ page }) => {
     await page.goto("/hoy");
     await expect(page.getByText("Primero sube tu CV")).toBeVisible();
   });
 
-  test("arma la cola sin las ofertas riesgosas; enviar y saltar la vacían", async ({ page, isMobile }) => {
-    test.skip(isMobile, "en el celular la cola es una tarjeta a la vez: ver la prueba de deslizar");
+  test("arma las vacantes del día sin las ofertas riesgosas; enviar y saltar las vacían", async ({ page, isMobile }) => {
+    test.skip(isMobile, "en el celular van de una en una: ver la prueba de deslizar");
     await colaConVacantes(page);
     const cola = page.getByRole("list").getByRole("article");
     await expect(cola).toHaveCount(2);
@@ -57,7 +57,7 @@ test.describe("Cola de hoy", () => {
   test("en el celular va una a la vez: los botones y deslizar envían o saltan", async ({ page, isMobile }) => {
     test.skip(!isMobile, "solo en pantallas chicas");
     await colaConVacantes(page);
-    await expect(page.getByText("1 de 2 en tu cola")).toBeVisible();
+    await expect(page.getByText("Vacante 1 de 2")).toBeVisible();
     await expect(page.getByRole("article", { name: /Estafa Rápida/ })).toHaveCount(0);
     await expect(page.getByRole("article")).toHaveCount(1);
 
@@ -73,16 +73,16 @@ test.describe("Cola de hoy", () => {
     };
     page.once("dialog", (d) => void d.dismiss());
     await deslizar(180);
-    await expect(page.getByText("1 de 2 en tu cola")).toBeVisible();
+    await expect(page.getByText("Vacante 1 de 2")).toBeVisible();
 
     page.once("dialog", (d) => void d.accept());
     await deslizar(180);
     await expect(page.getByText(/^Enviada: .+\. Quedó en tus postulaciones\.$/)).toBeVisible();
     await expect(page.getByText("1 de 50 enviadas hoy")).toBeVisible();
-    await expect(page.getByText("1 de 1 en tu cola")).toBeVisible();
+    await expect(page.getByText("Vacante 1 de 1")).toBeVisible();
 
     await deslizar(-180);
-    await expect(page.getByText("No hay vacantes listas en tu cola")).toBeVisible();
+    await expect(page.getByText("No hay vacantes listas por ahora")).toBeVisible();
   });
 
   test("con la meta cumplida lo celebra y no muestra más", async ({ page }) => {

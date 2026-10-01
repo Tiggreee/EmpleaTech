@@ -37,7 +37,7 @@ export default function Hoy() {
         setDatos(d);
         setAhora(new Date());
       } catch (e) {
-        if (activo) setMsg({ tono: "riesgo", texto: e instanceof Error ? e.message : "No se pudo cargar tu cola." });
+        if (activo) setMsg({ tono: "riesgo", texto: e instanceof Error ? e.message : "No se pudieron cargar tus vacantes." });
       }
     })();
     return () => {
@@ -85,7 +85,7 @@ export default function Hoy() {
   if (!cargando && !cv) {
     return (
       <main className="mx-auto max-w-6xl px-5 py-10">
-        <Encabezado titulo="Tu cola de hoy" />
+        <Encabezado titulo="Tus vacantes de hoy" />
         <Vacio titulo="Primero sube tu CV" accion={<EnlaceBoton href="/cv">Subir mi CV</EnlaceBoton>}>
           Con tu CV buscamos, ordenamos y preparamos todo. Tú solo revisas y envías.
         </Vacio>
@@ -106,7 +106,7 @@ export default function Hoy() {
         <div>
           <p className="font-mono text-xs uppercase tracking-widest text-tenue">{fecha ?? "Hoy"}</p>
           <h1 className="mt-3 text-5xl font-black leading-[0.9] tracking-[-0.05em] sm:text-7xl lg:text-8xl">
-            {cola && pendientes > 0 ? `Hoy: ${pendientes} por enviar.` : "Tu cola de hoy"}
+            {cola && pendientes > 0 ? `Hoy: ${pendientes} por enviar.` : "Tus vacantes de hoy"}
           </h1>
           <p className="mt-4 max-w-xl text-lg text-tenue">Cada una ya trae su CV y su carta. Tú revisas, abres el formulario y envías.</p>
           <div className="mt-6 flex flex-wrap gap-2">
@@ -174,7 +174,7 @@ export default function Hoy() {
 
       {!cola && !msg && (
         <p role="status" className="font-mono text-xs uppercase tracking-widest text-tenue">
-          Armando tu cola…
+          Preparando tus vacantes…
         </p>
       )}
 
@@ -185,8 +185,8 @@ export default function Hoy() {
       )}
 
       {cola && cola.faltanHoy > 0 && pendientes === 0 && (
-        <Vacio titulo="No hay vacantes listas en tu cola" accion={<Boton onClick={() => void buscar()} disabled={ocupado === "buscar"}>Buscar vacantes</Boton>}>
-          Buscamos en tus plataformas y armamos la cola. Puedes ajustar qué buscar en{" "}
+        <Vacio titulo="No hay vacantes listas por ahora" accion={<Boton onClick={() => void buscar()} disabled={ocupado === "buscar"}>Buscar vacantes</Boton>}>
+          Buscamos en tus plataformas y te dejamos las mejores aquí. Puedes ajustar qué buscar en{" "}
           <Link className="font-semibold underline underline-offset-4" href="/vacantes">
             Vacantes
           </Link>
@@ -198,7 +198,7 @@ export default function Hoy() {
         <>
           <Mazo items={cola.items} ahora={ahora} ocupado={ocupado} onEnviada={(i) => enviada(i as Guardada)} onSaltar={(i) => saltar(i as Guardada)} />
 
-          <ol className="hidden border-t-2 border-texto md:block" aria-label="Cola de hoy">
+          <ol className="hidden border-t-2 border-texto md:block" aria-label="Vacantes de hoy">
             {cola.items.map((item, i) => {
               const v = item.vacante;
               const g = item as Guardada;

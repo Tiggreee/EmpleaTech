@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,18 +7,64 @@ import { APP_NAME } from "@/config/app";
 import { borrarEstadoLocal } from "@/storage/almacenes";
 import { cx } from "@/ui/ui";
 
-const ENLACES = [
-  { href: "/panel", texto: "Panel" },
-  { href: "/hoy", texto: "Hoy" },
-  { href: "/vacantes", texto: "Vacantes" },
-  { href: "/freelance", texto: "Freelance" },
-  { href: "/analizar", texto: "Analizar" },
-  { href: "/cv", texto: "Mi CV" },
-  { href: "/perfil", texto: "Perfil" },
-  { href: "/postulaciones", texto: "Postulaciones" },
-  { href: "/resultados", texto: "Resultados" },
-  { href: "/inteligencia", texto: "Inteligencia" },
+interface Pestana {
+  href: string;
+  texto: string;
+  /** Solo cuando la app vive en internet con contraseña. */
+  conSesion?: boolean;
+}
+
+interface Seccion {
+  href: string;
+  texto: string;
+  /** Las páginas de la sección; si son varias, salen como pestañas en una segunda línea. */
+  pestanas: Pestana[];
+  /** Páginas que pertenecen a la sección sin ser pestaña (p. ej. preparar CV y carta). */
+  otras?: string[];
+}
+
+/** Cinco secciones en lugar de once enlaces: lo demás vive como pestaña dentro de su sección. */
+const SECCIONES: Seccion[] = [
+  { href: "/hoy", texto: "Hoy", pestanas: [] },
+  {
+    href: "/vacantes",
+    texto: "Vacantes",
+    pestanas: [
+      { href: "/vacantes", texto: "Empleos" },
+      { href: "/freelance", texto: "Freelance" },
+      { href: "/analizar", texto: "Analizar una oferta" },
+    ],
+    otras: ["/preparar"],
+  },
+  {
+    href: "/postulaciones",
+    texto: "Postulaciones",
+    pestanas: [
+      { href: "/postulaciones", texto: "Seguimiento" },
+      { href: "/resultados", texto: "Resultados" },
+    ],
+  },
+  {
+    href: "/panel",
+    texto: "Panel",
+    pestanas: [
+      { href: "/panel", texto: "Panel" },
+      { href: "/inteligencia", texto: "Inteligencia" },
+    ],
+  },
+  {
+    href: "/perfil",
+    texto: "Mi perfil",
+    pestanas: [
+      { href: "/perfil", texto: "Perfil y respuestas" },
+      { href: "/cv", texto: "Mi CV" },
+      { href: "/autollenado", texto: "Autollenado" },
+      { href: "/seguridad", texto: "Seguridad", conSesion: true },
+    ],
+  },
 ];
+
+const deLaSeccion = (s: Seccion, ruta: string) => ruta === s.href || s.pestanas.some((p) => p.href === ruta) || !!s.otras?.includes(ruta);
 
 export function Logo({ tamano = 24 }: { tamano?: number }) {
   return (
@@ -40,41 +86,43 @@ async function salir() {
 
 /**
  * `conSesion`: la app vive en internet y pide contraseña; entonces aparecen «Seguridad» y «Salir».
- * En pantallas chicas los enlaces van detrás de «Menú»: doce enlaces pegados arriba se comían media pantalla.
+ * En pantallas chicas las secciones van detrás de «Menú»; las pestañas de la sección actual siempre se ven.
  */
 export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
   const ruta = usePathname();
   const [abierto, setAbierto] = useState(false);
   if (ruta === "/entrar") return null;
-  const enlaces = conSesion ? [...ENLACES, { href: "/seguridad", texto: "Seguridad" }] : ENLACES;
+  const actual = SECCIONES.find((s) => deLaSeccion(s, ruta));
+  const pestanas = (actual?.pestanas ?? []).filter((p) => conSesion || !p.conSesion);
 
-  const elementos = (movil: boolean) => (
+  const secciones = (movil: boolean) => (
     <>
-      {enlaces.map((e) => {
-        const activo = ruta === e.href;
+      {SECCIONES.map((s) => {
+        const activa = s === actual;
         return (
-          <li key={e.href}>
+          <li key={s.href}>
             <Link
-              href={e.href}
-              aria-current={activo ? "page" : undefined}
+              href={s.href}
+              aria-current={ruta === s.href ? "page" : activa ? "true" : undefined}
               onClick={() => setAbierto(false)}
               className={cx(
-                "font-mono text-xs uppercase tracking-wider transition-colors",
-                movil ? "flex min-h-11 items-center border-b border-linea px-1 text-sm" : "border-b-2 px-0.5 py-1",
-                activo ? (movil ? "font-semibold text-texto" : "border-naranja text-texto") : cx("text-tenue hover:text-texto", !movil && "border-transparent"),
+                "font-extrabold tracking-tight transition-colors",
+                movil ? "flex min-h-12 items-center border-b border-linea px-1 text-lg" : "border-b-[3px] py-1 text-[15px]",
+                activa ? (movil ? "text-texto" : "border-naranja text-texto") : cx("text-tenue hover:text-texto", !movil && "border-transparent"),
               )}
             >
-              {e.texto}
+              {movil && activa && <span aria-hidden="true" className="mr-2 inline-block h-2.5 w-2.5 bg-naranja" />}
+              {s.texto}
             </Link>
           </li>
         );
       })}
       {conSesion && (
-        <li>
+        <li className={movil ? "" : "ml-2 border-l-2 border-linea pl-5"}>
           <button
             type="button"
             onClick={() => void salir()}
-            className={cx("font-mono text-xs uppercase tracking-wider text-tenue transition-colors hover:text-texto", movil ? "flex min-h-11 w-full items-center px-1 text-sm" : "py-1")}
+            className={cx("font-mono text-xs font-semibold uppercase tracking-wider text-tenue transition-colors hover:text-texto", movil ? "flex min-h-12 w-full items-center px-1 text-sm" : "py-1")}
           >
             Salir
           </button>
@@ -84,7 +132,7 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
   );
 
   return (
-    <header className="sticky top-0 z-20 border-b-2 border-texto bg-fondo/95 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b-[3px] border-texto bg-fondo/95 backdrop-blur">
       <nav
         className="mx-auto max-w-6xl px-5 py-3"
         aria-label="Principal"
@@ -97,10 +145,10 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
             <Logo />
             <span>{APP_NAME}</span>
           </Link>
-          <ul className="hidden flex-wrap items-center justify-end gap-x-5 gap-y-1 lg:flex">{elementos(false)}</ul>
+          <ul className="hidden items-center gap-x-7 md:flex">{secciones(false)}</ul>
           <button
             type="button"
-            className="boton boton-sec lg:hidden"
+            className="boton boton-sec md:hidden"
             aria-expanded={abierto}
             aria-controls="menu-principal"
             onClick={() => setAbierto(!abierto)}
@@ -109,12 +157,35 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
           </button>
         </div>
         {abierto && (
-          <ul id="menu-principal" className="mt-3 grid gap-x-6 border-t-2 border-texto pt-2 sm:grid-cols-2 lg:hidden">
-            {elementos(true)}
+          <ul id="menu-principal" className="mt-3 border-t-[3px] border-texto pt-1 md:hidden">
+            {secciones(true)}
           </ul>
         )}
       </nav>
+
+      {pestanas.length > 1 && (
+        <nav aria-label={`Secciones de ${actual?.texto}`} className="border-t border-linea">
+          <ul className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-5 py-2">
+            {pestanas.map((p) => {
+              const activa = ruta === p.href;
+              return (
+                <li key={p.href} className="shrink-0">
+                  <Link
+                    href={p.href}
+                    aria-current={activa ? "page" : undefined}
+                    className={cx(
+                      "inline-flex min-h-10 items-center px-3 font-mono text-xs font-semibold uppercase tracking-wider transition-colors",
+                      activa ? "bg-texto text-fondo" : "text-tenue hover:bg-superficie hover:text-texto",
+                    )}
+                  >
+                    {p.texto}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      )}
     </header>
   );
 }
-

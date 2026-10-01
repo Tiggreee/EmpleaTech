@@ -9,7 +9,8 @@ export interface AjustesCola {
   topePorFuente: number;
 }
 
-export const AJUSTES_COLA_INICIALES: AjustesCola = { metaDiaria: 50, topePorFuente: 10 };
+/** 10 al día: cada una lleva CV y carta a la medida y hay que revisarlos; con 50 se cuelan las que casi no encajan. */
+export const AJUSTES_COLA_INICIALES: AjustesCola = { metaDiaria: 10, topePorFuente: 10 };
 
 /** Mismo día calendario en la zona horaria de quien usa la app. */
 export function esMismoDia(iso: string, hoy: Date): boolean {

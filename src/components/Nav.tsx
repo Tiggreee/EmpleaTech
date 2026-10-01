@@ -23,7 +23,7 @@ interface Seccion {
   otras?: string[];
 }
 
-/** Cinco secciones en lugar de once enlaces: lo demás vive como pestaña dentro de su sección. */
+/** Seis secciones en lugar de once enlaces: lo demás vive como pestaña dentro de su sección. */
 const SECCIONES: Seccion[] = [
   { href: "/hoy", texto: "Hoy", pestanas: [] },
   {
@@ -52,12 +52,12 @@ const SECCIONES: Seccion[] = [
       { href: "/inteligencia", texto: "Inteligencia" },
     ],
   },
+  { href: "/cv", texto: "Mi CV", pestanas: [] },
   {
     href: "/perfil",
     texto: "Mi perfil",
     pestanas: [
       { href: "/perfil", texto: "Perfil y respuestas" },
-      { href: "/cv", texto: "Mi CV" },
       { href: "/autollenado", texto: "Autollenado" },
       { href: "/seguridad", texto: "Seguridad", conSesion: true },
     ],
@@ -106,8 +106,8 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
               aria-current={ruta === s.href ? "page" : activa ? "true" : undefined}
               onClick={() => setAbierto(false)}
               className={cx(
-                "font-extrabold tracking-tight transition-colors",
-                movil ? "flex min-h-12 items-center border-b border-linea px-1 text-lg" : "border-b-[3px] py-1 text-[15px]",
+                "font-mono font-bold uppercase tracking-wider transition-colors",
+                movil ? "flex min-h-12 items-center border-b border-linea px-1 text-sm" : "border-b-[3px] py-1 text-[13px]",
                 activa ? (movil ? "text-texto" : "border-naranja text-texto") : cx("text-tenue hover:text-texto", !movil && "border-transparent"),
               )}
             >
@@ -118,11 +118,11 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
         );
       })}
       {conSesion && (
-        <li className={movil ? "" : "ml-2 border-l-2 border-linea pl-5"}>
+        <li className={movil ? "" : "ml-1 border-l-2 border-linea pl-3 lg:ml-2 lg:pl-5"}>
           <button
             type="button"
             onClick={() => void salir()}
-            className={cx("font-mono text-xs font-semibold uppercase tracking-wider text-tenue transition-colors hover:text-texto", movil ? "flex min-h-12 w-full items-center px-1 text-sm" : "py-1")}
+            className={cx("font-mono font-bold uppercase tracking-wider text-tenue transition-colors hover:text-texto", movil ? "flex min-h-12 w-full items-center px-1 text-sm" : "py-1 text-[13px]")}
           >
             Salir
           </button>
@@ -141,11 +141,11 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
         }}
       >
         <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2 text-xl font-black uppercase tracking-[-0.04em]" onClick={() => setAbierto(false)}>
+          <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-black uppercase tracking-[-0.04em] lg:text-xl" onClick={() => setAbierto(false)}>
             <Logo />
             <span>{APP_NAME}</span>
           </Link>
-          <ul className="hidden items-center gap-x-7 md:flex">{secciones(false)}</ul>
+          <ul className="hidden items-center gap-x-3 md:flex lg:gap-x-6">{secciones(false)}</ul>
           <button
             type="button"
             className="boton boton-sec md:hidden"
@@ -174,7 +174,7 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
                     href={p.href}
                     aria-current={activa ? "page" : undefined}
                     className={cx(
-                      "inline-flex min-h-10 items-center px-3 font-mono text-xs font-semibold uppercase tracking-wider transition-colors",
+                      "inline-flex min-h-10 items-center px-3 font-mono text-xs font-bold uppercase tracking-wider transition-colors",
                       activa ? "bg-texto text-fondo" : "text-tenue hover:bg-superficie hover:text-texto",
                     )}
                   >

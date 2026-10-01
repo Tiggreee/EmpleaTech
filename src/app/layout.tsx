@@ -9,7 +9,7 @@ import { DatosProvider } from "@/storage/hooks";
 import "./globals.css";
 
 const archivo = Archivo({ variable: "--font-archivo", subsets: ["latin"] });
-const plexMono = IBM_Plex_Mono({ variable: "--font-plex-mono", subsets: ["latin"], weight: ["400", "500", "600"] });
+const plexMono = IBM_Plex_Mono({ variable: "--font-plex-mono", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
 const DESCRIPCION = `${APP_NAME} analiza tu CV contra ofertas reales, detecta riesgos y guarda CVs, análisis y postulaciones en Postgres local para que puedas probar tu propio flujo end to end.`;
 

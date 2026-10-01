@@ -11,6 +11,7 @@ async function pedir(ruta: string, init?: RequestInit): Promise<unknown> {
     headers: { "Content-Type": "application/json", "x-empleatech": "extension", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init?.headers },
   });
   const body = (await res.json().catch(() => null)) as { error?: string } | null;
+  if (res.status === 401) throw new Error("Falta conectar la extensión: en tu EmpleaTech abre Mi CV → Autollenado y pulsa «Conectar la extensión».");
   if (!res.ok) throw new Error(body?.error ?? `EmpleaTech respondió ${res.status}`);
   return body;
 }
@@ -38,7 +39,7 @@ chrome.runtime.onMessage.addListener((msg: Mensaje, remitente, responder) => {
     .then((datos) => responder({ ok: true, datos }))
     .catch((e: unknown) => {
       const mensaje = e instanceof Error ? e.message : "Error desconocido";
-      responder({ ok: false, error: /Failed to fetch|NetworkError/i.test(mensaje) ? "No encontramos EmpleaTech. ¿Está abierta la app en tu computadora?" : mensaje });
+      responder({ ok: false, error: /Failed to fetch|NetworkError/i.test(mensaje) ? "No pudimos hablar con tu EmpleaTech. Revisa tu conexión a internet (o, si la usas en tu computadora, que esté abierta)." : mensaje });
     });
   return true; // respuesta asíncrona
 });

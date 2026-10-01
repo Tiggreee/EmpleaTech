@@ -32,6 +32,24 @@ test.describe("Estados de carga, vacío y error", () => {
   });
 });
 
+test.describe("Portada", () => {
+  test("si tu CV ya está guardado lo dice, para que «Sube tu CV» no parezca que falta", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Sube tu CV" })).toBeVisible();
+    await expect(page.getByText("Tu CV ya está cargado")).toHaveCount(0);
+
+    await page.route("**/api/state", async (ruta) => {
+      if (ruta.request().method() !== "GET") return ruta.continue();
+      const cv = { id: "cv-1", nombre: "Mi_CV", texto: "Desarrollador Java con Spring Boot.", actualizadoEn: "2026-10-01T10:00:00.000Z" };
+      await ruta.fulfill({ contentType: "application/json", body: JSON.stringify({ perfil: { activoId: cv.id, cvs: [cv] }, postulaciones: [] }) });
+    });
+    await page.reload();
+    await expect(page.getByRole("status").filter({ hasText: "Tu CV ya está cargado: Mi_CV" })).toBeVisible();
+    await page.getByRole("link", { name: "Sigue: tus vacantes de hoy →" }).click();
+    await expect(page).toHaveURL(/\/hoy$/);
+  });
+});
+
 test.describe("Teclado", () => {
   test("lo primero con el tabulador es saltarse el menú", async ({ page, isMobile }) => {
     test.skip(isMobile, "en el teléfono no hay tabulador");

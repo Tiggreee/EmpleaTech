@@ -1,4 +1,5 @@
 import Link from "next/link";
+import TuCvListo from "@/features/inicio/TuCvListo";
 
 const PASOS = [
   { t: "Sube tu CV", d: "PDF, Word o texto. Revisas lo que entendió y lo corriges si hace falta." },
@@ -27,6 +28,7 @@ export default function Inicio() {
             Analizar una oferta
           </Link>
         </div>
+        <TuCvListo />
       </section>
 
       <section aria-labelledby="como" className="mt-12">

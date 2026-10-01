@@ -111,8 +111,8 @@ test("cambiar la contraseña cierra las demás sesiones y desconecta la extensi�
   const vieja = await galletaSesion(page);
   expect((await request.get("/api/state", { headers: { cookie: `et_sesion=${vieja}` } })).status()).toBe(200);
 
-  await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Mi perfil" }).click();
-  await page.getByRole("navigation", { name: "Secciones de Mi perfil" }).getByRole("link", { name: "Seguridad" }).click();
+  await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Mi CV" }).click();
+  await page.getByRole("navigation", { name: "Secciones de Mi CV" }).getByRole("link", { name: "Seguridad" }).click();
   await page.getByLabel("Contraseña actual", { exact: true }).fill("no es mi contraseña");
   await page.getByLabel("Contraseña nueva", { exact: true }).fill(NUEVA);
   await page.getByLabel("Repite la contraseña nueva").fill(NUEVA);

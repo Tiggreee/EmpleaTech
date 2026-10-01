@@ -45,7 +45,7 @@ export const getOnBoard: FuenteVacantes = {
   async buscar(c: Consulta, ctx: ContextoFuente) {
     const expand = encodeURIComponent('["company"]');
     const lotes = await Promise.all(
-      primeras(c).map((q) => ctx.http.json(`https://www.getonbrd.com/api/v0/search/jobs?query=${encodeURIComponent(q)}&per_page=100&page=1&expand=${expand}`)),
+      primeras(c).map((q) => ctx.http.json(`https://www.getonbrd.com/api/v0/search/jobs?query=${encodeURIComponent(q)}&per_page=50&page=1&expand=${expand}`)),
     );
     return lotes.flatMap(mapearGetOnBoard);
   },

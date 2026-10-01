@@ -41,8 +41,8 @@ export function clavesDelEntorno(): Record<string, string | undefined> {
 
 const MAX_BYTES = 15 * 1024 * 1024;
 
-/** Cliente HTTP real: tiempo límite, tope de tamaño y errores con el código de respuesta. */
-export function httpReal(timeoutMs = 15_000): Http {
+/** Cliente HTTP real: tiempo límite (25 s: desde Vercel algunas fuentes tardan más que desde México), tope de tamaño y errores con el código. */
+export function httpReal(timeoutMs = 25_000): Http {
   return {
     async json(url, init) {
       const res = await fetch(url, {

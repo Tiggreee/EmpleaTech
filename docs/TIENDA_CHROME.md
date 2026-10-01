@@ -49,9 +49,13 @@ listo para copiar. Cuenta: de **no comerciante** (la extensión es gratis, sin a
   - Permiso opcional `https://*/*`: solo se pide (con aviso de Chrome) si el usuario aloja su EmpleaTech en otra dirección y la escribe en las opciones.
   - Scripts de contenido en Greenhouse, Lever y Ashby (formularios de postulación) y en Workana, Upwork y Freelancer.com (propuestas): leen las preguntas del formulario o el texto del proyecto y escriben las respuestas cuando el usuario pulsa el botón de la extensión. En empleatech.site y localhost: solo avisan que la extensión está instalada y reciben la conexión de un clic.
 - **¿Usa código remoto?** No. Todo el código va en el paquete.
-- **Datos que maneja** (marcar):
-  - Información de identificación personal (nombre, correo, teléfono, LinkedIn del perfil del usuario, para llenar formularios).
-  - Contenido de sitios web (preguntas del formulario y texto del proyecto abierto).
+- **Datos que maneja** (marcar; declarar de más no se penaliza, declarar de menos sí):
+  - Información de identificación personal (nombre, correo, teléfono, ciudad y LinkedIn del perfil, para llenar formularios).
+  - Información de autenticación (el token de conexión, guardado solo en el navegador).
+  - Historial web (solo la URL y el título de la página del formulario que el usuario envía).
+  - Actividad del usuario (solo el clic en el botón de envío de esos formularios).
+  - Contenido de sitios web (preguntas del formulario, respuestas a preguntas nuevas y texto del proyecto abierto).
+  - No marcar: salud, finanzas, comunicaciones personales, ubicación.
 - **Certificaciones** (marcar las tres): no se venden ni transfieren datos a terceros fuera de los casos permitidos; no se usan para fines ajenos al propósito único; no se usan para determinar solvencia ni para préstamos.
 - **Política de privacidad:** https://empleatech.site/privacidad
 

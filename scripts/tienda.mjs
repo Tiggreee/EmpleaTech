@@ -50,5 +50,17 @@ await captura(
   path.join(tienda, "mosaico-440x280.png"),
 );
 
+// Marquesina (1400×560): solo se usa si la tienda destaca la extensión en portada.
+await captura(
+  `<div style="width:1400px;height:560px;box-sizing:border-box;background:${PAPEL};border:10px solid ${NEGRO};padding:64px 80px;display:flex;flex-direction:column;justify-content:space-between;font-family:'Arial Black',Arial,sans-serif;color:${NEGRO}">
+    <div style="display:flex;align-items:center;gap:22px;line-height:0">${logo(88, 3)}<span style="font-size:52px;line-height:1;letter-spacing:-2px;text-transform:uppercase">EmpleaTech</span></div>
+    <div style="font-size:96px;line-height:0.95;letter-spacing:-4px">Llena tu postulación.<br><span style="color:#b43a0b">Tú la envías.</span></div>
+    <div style="font:600 22px/1.3 Consolas,'Courier New',monospace;letter-spacing:2px;white-space:nowrap;text-transform:uppercase;color:#555">Greenhouse · Lever · Ashby · Workana · Upwork · Freelancer</div>
+  </div>`,
+  1400,
+  560,
+  path.join(tienda, "marquesina-1400x560.png"),
+);
+
 await navegador.close();
-console.log("Iconos en extension/iconos y mosaico en extension/tienda.");
+console.log("Iconos en extension/iconos; mosaico y marquesina en extension/tienda.");

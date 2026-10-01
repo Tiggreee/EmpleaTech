@@ -49,6 +49,10 @@ export default function PrivacidadPage() {
           </li>
           <li>Nunca envía nada: el botón «Enviar» siempre lo presionas tú. No marca casillas de términos ni resuelve captchas.</li>
           <li>
+            Para saber que enviaste el formulario, detecta el clic en su botón de envío y la página de confirmación. No registra otros clics, ni lo que escribes en
+            otras páginas.
+          </li>
+          <li>
             Cuando envías, manda a tu {APP_NAME} la dirección y el título de esa página (para registrar la postulación) y tus respuestas a preguntas nuevas (para
             llenarlas la próxima vez).
           </li>
@@ -58,8 +62,37 @@ export default function PrivacidadPage() {
           </li>
         </ul>
         <p>
-          La extensión solo habla con tu {APP_NAME} (empleatech.site, o la dirección que tú configures). No manda datos a ningún otro servidor, no lee otras páginas
-          y no registra tu historial de navegación.
+          La extensión solo habla con tu {APP_NAME} (empleatech.site, o la dirección que tú configures), siempre cifrado (HTTPS) en internet. No manda datos a
+          ningún otro servidor, no lee otras páginas y no registra tu historial de navegación.
+        </p>
+      </Seccion>
+
+      <Seccion titulo="Lo que declaramos en la Chrome Web Store">
+        <p>Estas son las categorías de datos que maneja la extensión, con el alcance exacto de cada una:</p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            <strong className="text-texto">Información de identificación personal:</strong> tu nombre, correo, teléfono, ciudad y enlaces profesionales, tomados
+            de tu perfil para llenar formularios.
+          </li>
+          <li>
+            <strong className="text-texto">Información de autenticación:</strong> el token de conexión con tu cuenta, guardado solo en tu navegador.
+          </li>
+          <li>
+            <strong className="text-texto">Historial web:</strong> solo la dirección y el título de la página del formulario que envías, para registrar esa
+            postulación.
+          </li>
+          <li>
+            <strong className="text-texto">Actividad del usuario:</strong> solo el clic en el botón de envío de esos formularios.
+          </li>
+          <li>
+            <strong className="text-texto">Contenido de sitios web:</strong> las preguntas del formulario, tus respuestas a preguntas nuevas y el texto del proyecto
+            freelance abierto.
+          </li>
+        </ul>
+        <p>
+          El uso que {APP_NAME} hace de la información recibida de la extensión se ajusta a la Política de datos de usuario de Chrome Web Store, incluidos los
+          requisitos de Uso limitado: solo se usa para el propósito de la extensión (llenar tus postulaciones y registrarlas), no se vende, no se transfiere a
+          terceros, no se usa para publicidad ni para evaluar crédito, y nadie la lee salvo que tú lo pidas para darte soporte o que la ley lo exija.
         </p>
       </Seccion>
 
@@ -83,12 +116,16 @@ export default function PrivacidadPage() {
           {APP_NAME} is a personal job-search assistant. Its Chrome extension fills job application forms (Greenhouse, Lever, Ashby) and freelance proposals
           (Workana, Upwork, Freelancer.com) with your own {APP_NAME} profile, and only when you ask. It never submits anything for you. It talks only to your{" "}
           {APP_NAME} server, stores only that server address and a connection token in the extension&apos;s local storage, and sends your data to no third party.
-          No data is sold, shared, or used for advertising; there are no analytics or third-party cookies.
+          No data is sold, shared, or used for advertising; there are no analytics or third-party cookies. Data categories handled: personally identifiable
+          information (profile used to fill forms), authentication information (connection token), web history (only the URL and title of the application
+          page you submit), user activity (only the click on that form&apos;s submit button) and website content (form questions, your answers to new
+          questions, the open freelance project text). The use of information received from the extension adheres to the Chrome Web Store User Data Policy,
+          including the Limited Use requirements.
         </p>
       </Seccion>
 
       <Seccion titulo="Contacto">
-        <p>Dudas o solicitudes sobre tus datos: escribe desde la pestaña «Asistencia» de la ficha de {APP_NAME} en la Chrome Web Store.</p>
+        <p>Dudas o solicitudes sobre tus datos: escribe al correo de contacto del desarrollador que aparece en la ficha de {APP_NAME} en la Chrome Web Store.</p>
       </Seccion>
     </main>
   );

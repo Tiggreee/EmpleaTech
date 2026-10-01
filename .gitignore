@@ -23,6 +23,7 @@ playwright-report/
 dev.log
 
 extension/dist/
+extension/*.zip
 
 # Vercel (enlace local del proyecto)
 /.vercel

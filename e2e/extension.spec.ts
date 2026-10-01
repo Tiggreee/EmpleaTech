@@ -148,6 +148,30 @@ test.describe("Extensión de Chrome", () => {
     await expect(page.getByText("Payments API for an online store", { exact: true })).toBeVisible();
   });
 
+  test("se conecta con un botón desde Autollenado, sin copiar nada a las opciones", async ({ baseURL }) => {
+    contexto = await chromium.launchPersistentContext(path.join(os.tmpdir(), `empleatech-ext-${Date.now()}`), {
+      channel: "chromium",
+      args: [`--disable-extensions-except=${DIST}`, `--load-extension=${DIST}`],
+    });
+    const sw = contexto.serviceWorkers()[0] ?? (await contexto.waitForEvent("serviceworker"));
+    // Recién instalada apunta a internet; conectar desde esta app la cambia a la dirección de esta app.
+    expect(await sw.evaluate(() => chrome.storage.local.get("base"))).toEqual({});
+
+    const app = await contexto.newPage();
+    await app.goto(`${baseURL}/autollenado`);
+    await expect(app.getByText(/Extensión \d+\.\d+\.\d+ instalada en este navegador/)).toBeVisible();
+    await app.getByRole("button", { name: "Conectar la extensión" }).click();
+    const origen = new URL(baseURL as string).origin;
+    await expect(app.getByText(`Conectada a ${origen}.`, { exact: false })).toBeVisible();
+    expect(await sw.evaluate(() => chrome.storage.local.get(["base", "token"]))).toEqual({ base: origen, token: "" });
+  });
+
+  test("sin la extensión, Autollenado dice cómo instalarla en vez de mostrar el botón", async ({ page }) => {
+    await page.goto("/autollenado");
+    await expect(page.getByText("No vemos la extensión en este navegador.", { exact: false })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Conectar la extensión" })).toHaveCount(0);
+  });
+
   test("el servicio no responde a páginas web cualquiera", async ({ request }) => {
     const sinEncabezado = await request.get(`/api/autollenado?url=${encodeURIComponent(FORMULARIO)}`);
     expect(sinEncabezado.status()).toBe(403);

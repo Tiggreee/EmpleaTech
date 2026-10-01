@@ -22,7 +22,8 @@
     "recon": "node recon/recon.mjs",
     "test:e2e": "playwright test",
     "migrate": "node scripts/migrate.mjs",
-    "extension": "node scripts/extension.mjs"
+    "extension": "node scripts/extension.mjs",
+    "tienda": "node scripts/tienda.mjs"
   },
   "dependencies": {
     "jszip": "^3.10.2",

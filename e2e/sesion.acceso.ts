@@ -1,4 +1,7 @@
-import { expect, test, type Page } from "@playwright/test";
+import { execFileSync } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
+import { chromium, expect, test, type Page } from "@playwright/test";
 import pg from "pg";
 import { CODIGO_PRUEBA } from "../playwright.acceso.config";
 import { codigoTotp, deBase32, pasoDe } from "../src/server/totp";
@@ -91,6 +94,7 @@ test("la extensión entra solo con su token", async ({ page, request }) => {
   await expect(page).toHaveURL(/\/hoy$/);
 
   await page.goto("/autollenado");
+  await page.getByText("Conectarla a mano").click();
   await page.getByRole("button", { name: "Generar token" }).click();
   const token = await page.getByLabel("Token de conexión").inputValue();
   expect(token).toMatch(/^extension\.[a-f0-9]{32}\.\d+\./);
@@ -103,6 +107,40 @@ test("la extensión entra solo con su token", async ({ page, request }) => {
   expect(falso.status()).toBe(401);
   // Un token de sesión no sirve como token de extensión (y viceversa).
   expect((await request.get(ruta, { headers: { "x-empleatech": "extension", Authorization: `Bearer ${await galletaSesion(page)}` } })).status()).toBe(401);
+});
+
+test("con la extensión instalada, «Conectar la extensión» le da la dirección y un token que la app acepta", async ({ baseURL }) => {
+  // Empaqueta la extensión y abre otro Chrome: tarda más que las demás.
+  test.setTimeout(90_000);
+  execFileSync(process.execPath, [path.resolve(__dirname, "..", "scripts", "extension.mjs")], { stdio: "inherit" });
+  const dist = path.resolve(__dirname, "..", "extension", "dist");
+  const contexto = await chromium.launchPersistentContext(path.join(os.tmpdir(), `empleatech-ext-acceso-${Date.now()}`), {
+    baseURL,
+    channel: "chromium",
+    args: [`--disable-extensions-except=${dist}`, `--load-extension=${dist}`],
+  });
+  try {
+    const sw = contexto.serviceWorkers()[0] ?? (await contexto.waitForEvent("serviceworker"));
+    const app = await contexto.newPage();
+    await entrar(app, CONTRASENA);
+    await expect(app).toHaveURL(/\/hoy$/);
+    await app.goto("/autollenado");
+    await app.getByRole("button", { name: "Conectar la extensión" }).click();
+    const origen = new URL(baseURL as string).origin;
+    await expect(app.getByText(`Conectada a ${origen}.`, { exact: false })).toBeVisible();
+
+    const guardado = (await sw.evaluate(() => chrome.storage.local.get(["base", "token"]))) as { base: string; token: string };
+    expect(guardado.base).toBe(origen);
+    expect(guardado.token).toMatch(/^extension\.[a-f0-9]{32}\.\d+\./);
+    // Lo que guardó la extensión le abre la puerta: datos (200) o «sube tu CV» (409), nunca 401.
+    const estado = await sw.evaluate(
+      async ({ base, token, url }) => (await fetch(`${base}/api/autollenado?url=${encodeURIComponent(url)}`, { headers: { "x-empleatech": "extension", Authorization: `Bearer ${token}` } })).status,
+      { ...guardado, url: FORMULARIO },
+    );
+    expect([200, 409]).toContain(estado);
+  } finally {
+    await contexto.close();
+  }
 });
 
 test("cambiar la contraseña cierra las demás sesiones y desconecta la extensión", async ({ page, request }) => {

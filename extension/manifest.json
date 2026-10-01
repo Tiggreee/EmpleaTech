@@ -1,12 +1,20 @@
 {
   "manifest_version": 3,
   "name": "EmpleaTech",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Llena tus formularios de postulación y tus propuestas freelance con tu perfil de EmpleaTech. Tú revisas y tú envías.",
+  "homepage_url": "https://empleatech.site",
+  "icons": {
+    "16": "iconos/icono-16.png",
+    "32": "iconos/icono-32.png",
+    "48": "iconos/icono-48.png",
+    "128": "iconos/icono-128.png"
+  },
   "permissions": [
     "storage"
   ],
   "host_permissions": [
+    "https://empleatech.site/*",
     "http://localhost/*",
     "http://127.0.0.1/*"
   ],
@@ -40,6 +48,17 @@
         "propuesta.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://empleatech.site/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
+      ],
+      "js": [
+        "conectar.js"
+      ],
+      "run_at": "document_end"
     }
   ],
   "options_ui": {
@@ -47,6 +66,10 @@
     "open_in_tab": false
   },
   "action": {
-    "default_title": "EmpleaTech"
+    "default_title": "EmpleaTech",
+    "default_icon": {
+      "16": "iconos/icono-16.png",
+      "32": "iconos/icono-32.png"
+    }
   }
 }

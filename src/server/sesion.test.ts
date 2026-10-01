@@ -38,7 +38,7 @@ describe("tokens de sesión y de la extensión", () => {
 
 describe("rutas sin sesión", () => {
   it("solo la entrada y lo que el navegador pide solo", () => {
-    for (const r of ["/entrar", "/api/acceso", "/icon/32", "/manifest.webmanifest", "/robots.txt", "/sw.js", "/opengraph-image"]) expect(rutaPublica(r), r).toBe(true);
-    for (const r of ["/", "/hoy", "/perfil", "/api/state", "/api/autollenado", "/entrar-falso", "/api/vacantes"]) expect(rutaPublica(r), r).toBe(false);
+    for (const r of ["/entrar", "/privacidad", "/api/acceso", "/icon/32", "/manifest.webmanifest", "/robots.txt", "/sw.js", "/opengraph-image"]) expect(rutaPublica(r), r).toBe(true);
+    for (const r of ["/", "/hoy", "/perfil", "/api/state", "/api/autollenado", "/entrar-falso", "/privacidad/x", "/api/vacantes"]) expect(rutaPublica(r), r).toBe(false);
   });
 });

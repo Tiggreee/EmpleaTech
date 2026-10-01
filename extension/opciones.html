@@ -4,17 +4,24 @@
     <meta charset="utf-8" />
     <title>EmpleaTech</title>
     <style>
-      body { font: 14px system-ui, sans-serif; margin: 16px; min-width: 320px; color: #111; }
-      label { display: block; font-weight: 600; margin-bottom: 6px; }
-      input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #bbb; border-radius: 8px; }
-      button { margin-top: 10px; padding: 8px 14px; border: 0; border-radius: 8px; background: #22d3ee; font-weight: 600; cursor: pointer; }
-      p { color: #555; }
+      body { font: 14px/1.45 system-ui, sans-serif; margin: 16px; min-width: 340px; color: #0e0e0e; background: #f3f3ef; }
+      h1 { margin: 0 0 12px; font: 800 16px/1 system-ui, sans-serif; text-transform: uppercase; letter-spacing: -0.02em; border-bottom: 3px solid #0e0e0e; padding-bottom: 10px; }
+      h1::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 8px; background: #ff4f1a; }
+      label { display: block; font-weight: 600; margin: 12px 0 6px; }
+      input { width: 100%; box-sizing: border-box; padding: 8px; border: 2px solid #0e0e0e; background: #fff; font: inherit; }
+      input:focus-visible, button:focus-visible { outline: 3px solid #0e0e0e; outline-offset: 2px; }
+      button { margin-top: 12px; padding: 8px 14px; border: 2px solid #0e0e0e; background: #ff4f1a; color: #0e0e0e; font: 700 14px system-ui, sans-serif; cursor: pointer; }
+      button:hover { background: #0e0e0e; color: #f3f3ef; }
+      p { color: #4a4a46; margin: 10px 0 0; }
+      .nota { border-left: 4px solid #ff4f1a; padding-left: 10px; color: #0e0e0e; }
     </style>
   </head>
   <body>
+    <h1>EmpleaTech</h1>
+    <p class="nota">Lo normal es conectarla con un clic: en tu EmpleaTech abre <strong>Mi CV → Autollenado</strong> y pulsa «Conectar la extensión». Esto es solo para hacerlo a mano.</p>
     <label for="base">Dirección de tu EmpleaTech</label>
-    <input id="base" type="url" placeholder="http://localhost:3000" />
-    <label for="token" style="margin-top: 12px">Token de conexión (solo si tu EmpleaTech vive en internet)</label>
+    <input id="base" type="url" placeholder="https://empleatech.site" />
+    <label for="token">Token de conexión (solo si tu EmpleaTech vive en internet)</label>
     <input id="token" type="password" autocomplete="off" placeholder="Pégalo desde la página Autollenado de tu EmpleaTech" />
     <button id="guardar" type="button">Guardar</button>
     <p id="estado" role="status"></p>

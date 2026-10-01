@@ -1,5 +1,5 @@
-/** Dónde corre tu EmpleaTech. Por defecto, en tu computadora. */
-export const BASE_POR_DEFECTO = "http://localhost:3000";
+/** Dónde corre tu EmpleaTech. Por defecto, en internet; «Conectar» en Autollenado la cambia por la página desde la que conectas. */
+export const BASE_POR_DEFECTO = "https://empleatech.site";
 
 export async function baseDeLaApp(): Promise<string> {
   const { base } = await chrome.storage.local.get("base");

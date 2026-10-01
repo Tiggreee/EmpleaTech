@@ -21,18 +21,23 @@ export const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "
 const ESTILOS = `
   :host { all: initial; }
   .panel { position: fixed; right: 16px; bottom: 16px; z-index: 2147483647; width: 300px; max-height: 70vh; overflow: auto;
-    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; color: #eaf0ff; background: #0b1020; border: 1px solid #2a3558;
-    border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.35); padding: 12px; }
-  .fila { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  h2 { margin: 0; font-size: 14px; }
-  button { font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid #2a3558; background: #141b33; color: #eaf0ff; padding: 6px 10px; }
-  button.principal { background: linear-gradient(100deg, #22d3ee, #8b5cf6); color: #05070f; border: 0; font-weight: 700; width: 100%; margin-top: 10px; }
+    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; color: #0e0e0e; background: #f3f3ef; border: 3px solid #0e0e0e;
+    box-shadow: 6px 6px 0 #0e0e0e; padding: 12px; }
+  .fila { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 2px solid #0e0e0e; padding-bottom: 8px; }
+  h2 { margin: 0; font: 800 14px/1 system-ui, sans-serif; letter-spacing: -0.02em; text-transform: uppercase; }
+  h2::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 7px; background: #ff4f1a; }
+  button { font: inherit; cursor: pointer; border: 2px solid #0e0e0e; background: #fff; color: #0e0e0e; padding: 6px 10px; }
+  button:hover { background: #0e0e0e; color: #f3f3ef; }
+  button:focus-visible { outline: 3px solid #0e0e0e; outline-offset: 2px; }
+  button.principal { background: #ff4f1a; color: #0e0e0e; font-weight: 700; width: 100%; margin-top: 10px; }
+  button.principal:hover { background: #0e0e0e; color: #f3f3ef; }
   .cerrar { border: 0; background: none; padding: 2px 6px; font-size: 16px; }
-  p { margin: 8px 0 0; color: #9aa7c7; }
-  .ok { color: #34d399; }
-  .error { color: #fb7185; }
+  p { margin: 8px 0 0; color: #4a4a46; }
+  .ok { color: #1f6b36; font-weight: 600; }
+  .error { color: #a3231a; font-weight: 600; }
   ul { margin: 6px 0 0; padding-left: 16px; }
-  li button { border: 0; background: none; color: #fbbf24; padding: 0; text-align: left; text-decoration: underline; }
+  li button { border: 0; background: none; color: #b43a0b; padding: 0; text-align: left; text-decoration: underline; }
+  li button:hover { background: none; color: #0e0e0e; }
 `;
 
 export class Panel {

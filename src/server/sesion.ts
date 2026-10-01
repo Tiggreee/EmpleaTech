@@ -60,6 +60,7 @@ export async function leerToken(token: string | null | undefined, tipo: TipoToke
 export function rutaPublica(ruta: string): boolean {
   return (
     ruta === "/entrar" ||
+    ruta === "/privacidad" ||
     ruta.startsWith("/api/acceso") ||
     /^\/(favicon\.ico|icon(\/.*)?|apple-icon.*|manifest\.webmanifest|robots\.txt|opengraph-image.*|sw\.js)$/.test(ruta)
   );

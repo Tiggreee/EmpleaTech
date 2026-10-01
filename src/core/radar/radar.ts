@@ -178,12 +178,18 @@ const RE_SALARIO_VAGO = /(?:sueldo|salario|compensacion|salary)\s+(?:competitiv[
 
 const ORDEN: Record<Severidad, number> = { alta: 0, media: 1, baja: 2 };
 
-export function detectarAlertas(oferta: string, ahora: Date = new Date()): Diagnostico {
+/**
+ * `omitir`: ids de reglas que no aplican en ese contexto. La búsqueda omite «sin-rango-salarial»: casi ninguna oferta
+ * internacional publica salario, así que marcarla en todas no ordena nada y solo baja todos los puntajes por igual.
+ */
+export function detectarAlertas(oferta: string, ahora: Date = new Date(), opciones: { omitir?: readonly string[] } = {}): Diagnostico {
   const { orig, folded } = prep(oferta);
   const alertas: Alerta[] = [];
+  const omitir = new Set(opciones.omitir ?? []);
 
   if (folded.trim()) {
     for (const r of REGLAS) {
+      if (omitir.has(r.id)) continue;
       const todas = new RegExp(r.re.source, "g");
       for (const m of folded.matchAll(todas)) {
         if (r.excepto?.test(oracionEn(folded, m.index, m[0].length))) continue;
@@ -208,7 +214,7 @@ export function detectarAlertas(oferta: string, ahora: Date = new Date()): Diagn
       }
     }
 
-    if (wordCount(oferta) >= 40 && !RE_SALARIO_NUM.test(folded)) {
+    if (!omitir.has("sin-rango-salarial") && wordCount(oferta) >= 40 && !RE_SALARIO_NUM.test(folded)) {
       const vago = RE_SALARIO_VAGO.exec(folded);
       alertas.push({
         id: "sin-rango-salarial",

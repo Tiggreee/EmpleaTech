@@ -3,6 +3,7 @@ import { APP_PROFILE_ID, APP_PROFILE_NAME } from "@/config/app";
 import { sanitizarResumen } from "@/core/analisis/resumen";
 import { cvActivo, estructuradoDe } from "@/core/perfil/perfil";
 import { buscarVacantes, huellaPuntaje, ordenar, puntuar, type ResultadoFuente, type VacantePuntuada } from "@/core/vacantes/busqueda";
+import { oportunidades, type Oportunidad } from "@/core/vacantes/oportunidades";
 import { consultaDe, preferenciasIniciales, sanitizarPreferencias, type PreferenciasBusqueda } from "@/core/vacantes/preferencias";
 import { FUENTES, type FuenteId, type Vacante } from "@/core/vacantes/vacante";
 import type { Prioridad } from "@/core/seguimiento/prioridad";
@@ -107,6 +108,31 @@ export async function listarVacantes(estado: EstadoVacante = "nueva", limite = 2
     if (!resumen) return [];
     return [{ vacante: r.datos_json as Vacante, resumen, prioridad: prioridadSegura(r.prioridad_json), estado: r.estado as EstadoVacante, encontradaEn: new Date(r.encontrada_en).toISOString() }];
   });
+}
+
+export interface OportunidadesDeMejora {
+  oportunidades: Oportunidad[];
+  /** Empleos (no proyectos freelance) sobre los que se calculó. */
+  empleos: number;
+  /** Cuántos ya están en 90 o más, y el mejor puntaje. */
+  sobre90: number;
+  mejor: number | null;
+}
+
+/** Qué te subiría más el puntaje, sobre las vacantes por revisar y las guardadas (ver core/vacantes/oportunidades). */
+export async function oportunidadesDeMejora(ahora = new Date()): Promise<OportunidadesDeMejora> {
+  const { perfil } = await loadState();
+  const cv = cvActivo(perfil);
+  if (!cv) return { oportunidades: [], empleos: 0, sobre90: 0, mejor: null };
+  const items = [...(await listarVacantes("nueva", 300)), ...(await listarVacantes("guardada", 200))];
+  const empleos = items.filter((i) => i.vacante.tipo !== "proyecto" && i.prioridad.valor !== null);
+  const valores = empleos.map((i) => i.prioridad.valor as number);
+  return {
+    oportunidades: oportunidades(items, cv.texto, perfil.respuestas, ahora),
+    empleos: empleos.length,
+    sobre90: valores.filter((v) => v >= 90).length,
+    mejor: valores.length ? Math.max(...valores) : null,
+  };
 }
 
 export async function obtenerVacante(id: string): Promise<VacanteGuardada> {

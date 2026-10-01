@@ -121,7 +121,10 @@ const NIVEL_ENTRADA = /\b(junior|jr|intern|internship|trainee|practicante|becari
  * FNV-1a de 32 bits: basta para detectar cambios, no es criptográfico.
  */
 /** Súbela cuando cambie cómo se puntúa: las vacantes guardadas se vuelven a puntuar solas. */
-const VERSION_PUNTAJE = 3;
+const VERSION_PUNTAJE = 4;
+
+/** Reglas del radar que no aplican al ordenar vacantes (ver detectarAlertas). */
+const OMITIR_EN_BUSQUEDA = ["sin-rango-salarial"] as const;
 
 export function huellaPuntaje(cv: { id: string; actualizadoEn: string }, respuestas: Respuestas, extra = ""): string {
   let h = 0x811c9dc5;
@@ -142,7 +145,7 @@ function textoParaAnalizar(v: Vacante): string {
  */
 export function puntuar(v: Vacante, cvTexto: string, respuestas: Respuestas, ahora: Date, ajuste?: { puntos: number; motivo: string } | null): VacantePuntuada {
   const texto = textoParaAnalizar(v);
-  const resumen = resumir(analizar(cvTexto, texto, { ahora }), detectarAlertas(texto, ahora), ahora);
+  const resumen = resumir(analizar(cvTexto, texto, { ahora }), detectarAlertas(texto, ahora, { omitir: OMITIR_EN_BUSQUEDA }), ahora);
   const base = prioridadDeResumen(resumen);
   if (base.valor === null) return { vacante: v, resumen, prioridad: base };
 

@@ -10,6 +10,7 @@ import { ESTADOS, ETIQUETA_ESTADO, estadisticas } from "@/core/seguimiento/segui
 import { TONO_RECOMENDACION } from "@/features/analizar/ResultadoAnalisis";
 import { useDatosApp } from "@/storage/hooks";
 import { Aviso, Encabezado, EnlaceBoton, Estadistica, Insignia, Tarjeta } from "@/ui/ui";
+import QueMejorar from "./QueMejorar";
 
 const pct = (x: number | null) => (x === null ? "—" : `${Math.round(x * 100)}%`);
 
@@ -70,6 +71,8 @@ export default function Panel() {
         <Estadistica etiqueta="Afinidad promedio" valor={stats.scorePromedio === null ? "—" : `${stats.scorePromedio}%`} />
       </section>
 
+      {cv && <QueMejorar />}
+
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <Tarjeta titulo="Para hoy">
           {hoy.length === 0 ? (
@@ -122,7 +125,7 @@ export default function Panel() {
           )}
         </Tarjeta>
 
-        <Tarjeta titulo="Habilidades que más te faltan">
+        <Tarjeta titulo="Lo que más falta en tus postulaciones">
           {brechas.length === 0 ? (
             <p className="text-sm text-tenue">Cuando guardes varias ofertas, aquí verás qué habilidades se repiten y aún no aparecen en tu CV.</p>
           ) : (

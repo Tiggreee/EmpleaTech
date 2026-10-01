@@ -6,6 +6,24 @@ export type Estado = "cubierta" | "transferible" | "faltante";
 
 const PESO: Record<Nivel, number> = { requerida: 3, funcion: 2, deseable: 1 };
 const CREDITO_TRANSFERIBLE = 0.4;
+
+/**
+ * Habilidades blandas que un CV demuestra con hechos aunque no use la palabra: «Supervisor (team of up to 12)» es
+ * liderazgo y trabajo en equipo; «reported results to non-technical stakeholders» es comunicación. Solo se buscan en
+ * el CV (en las ofertas no), y la frase que coincide se muestra como evidencia. Texto ya sin acentos y en minúsculas.
+ */
+const EVIDENCIA_EN_CV: [string, RegExp][] = [
+  [
+    "liderazgo",
+    /\b(?:led|leading|managed|managing|supervised|supervising|lider\w*|dirig\w*|coordin\w*)\b[^.\n]{0,60}?\b(?:teams?|agents|people|staff|engineers|developers|equipos?|personas|agentes|colaboradores)\b|\b(?:team|tech|sales|operations|service)\s+lead\b|\bsupervisor\b|\bjefe de\b|\blider de\b/,
+  ],
+  [
+    "equipo",
+    /\bteams? of (?:up to )?\d+|\bcross[- ]functional\b|\bequipos? (?:de|multidisciplinari\w*)\b|\bcolabor\w+ con\b|\bcollaborat\w+ with\b|\b(?:led|leading|managed|supervised)\b[^.\n]{0,60}?\bteams?\b/,
+  ],
+  ["comunicacion", /\bstakeholders?\b|\bbilingu\w*|\bcustomer[- ]facing\b|\bpresent(?:ed|ations?)\b|\bpresentaciones?\b|\breported (?:results )?to\b|\binformes? (?:a|para)\b/],
+  ["problemas", /\bincidents?\b|\btroubleshoot\w*|\broot[- ]cause\b|\bdebugg\w*|\bincidencias?\b|\bincidentes?\b|\bproduction support\b|\bsoporte (?:a |en )?produccion\b/],
+];
 const PESO_EXPERIENCIA = 0.2;
 
 export interface Hallazgo {
@@ -265,6 +283,11 @@ export function analizar(cv: string, oferta: string, opciones: Opciones = {}): R
   for (const skill of SKILLS) {
     const pos = findMentions(pCv.folded, pCv.orig, skill);
     if (pos.length) cvPorSkill.set(skill.id, pos[0]);
+  }
+  for (const [id, re] of EVIDENCIA_EN_CV) {
+    if (cvPorSkill.has(id)) continue;
+    const m = re.exec(pCv.folded);
+    if (m) cvPorSkill.set(id, m.index);
   }
 
   const hallazgos: Hallazgo[] = reqs.map((r) => {

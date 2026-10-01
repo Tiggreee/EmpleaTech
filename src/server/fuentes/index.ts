@@ -23,10 +23,14 @@ export const ADAPTADORES: Record<FuenteId, FuenteVacantes> = {
 };
 
 /** Tableros verificados (con vacantes publicadas) para empezar; el usuario puede cambiarlos. */
+/**
+ * Primero las que contratan en México o LatAm (verificado en sus tableros: Clara, Sezzle y Stripe tienen decenas de
+ * vacantes ahí; Wizeline, Kavak, Kueski, Belvo, Blue Coding y Spin by OXXO, varias), luego remotas globales.
+ */
 export const EMPRESAS_INICIALES: Record<FuenteDeEmpresas, string[]> = {
-  greenhouse: ["wizeline", "gitlab", "cloudflare", "stripe", "twilio", "elastic", "mongodb", "okta", "databricks", "airbnb"],
-  lever: ["toptal", "spotify", "palantir"],
-  ashby: ["supabase", "posthog", "zapier", "linear", "notion", "ramp"],
+  greenhouse: ["wizeline", "clara", "sezzle", "spin", "stripe", "gitlab", "twilio", "okta", "cloudflare", "mongodb"],
+  lever: ["kavak", "bluecoding", "toptal"],
+  ashby: ["kueski", "belvo", "supabase", "posthog", "zapier"],
 };
 
 const CLAVES = ["ADZUNA_APP_ID", "ADZUNA_APP_KEY", "JOOBLE_API_KEY", "USAJOBS_API_KEY", "USAJOBS_EMAIL"] as const;

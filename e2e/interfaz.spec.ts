@@ -66,3 +66,27 @@ test.describe("Menú en pantallas chicas", () => {
     await expect(nav.getByRole("button", { name: "Menú" })).toHaveAttribute("aria-expanded", "false");
   });
 });
+
+test.describe("Panel: qué te subiría el puntaje", () => {
+  test("con vacantes encontradas, dice qué agregar o aprender y cuánto subirían", async ({ page }) => {
+    await page.goto("/cv");
+    await page.getByRole("button", { name: /Subir mi CV|Agregar CV/ }).first().click();
+    await page
+      .getByLabel(/Texto del CV/)
+      .fill("Ana Torres\nDesarrolladora Backend\n\nExperiencia\nDesarrolladora Backend — Acme Pagos\nEne 2021 – Presente\n- APIs REST en Node.js con PostgreSQL y Docker.\n\nHabilidades\nNode.js, TypeScript, PostgreSQL, Docker");
+    await page.getByRole("button", { name: "Guardar CV" }).click();
+    await expect(page.getByText("CV guardado en tu base local.")).toBeVisible();
+    await page.goto("/hoy");
+    await page.getByRole("button", { name: "Buscar vacantes" }).click();
+    await expect(page.getByText(/Encontramos \d+ vacantes? nuevas?/)).toBeVisible();
+
+    await page.goto("/panel");
+    const seccion = page.getByRole("region", { name: "Qué te subiría el puntaje" });
+    await expect(seccion).toBeVisible();
+    await expect(seccion.getByText(/\d+ de \d+ empleos en 90\+/)).toBeVisible();
+    const filas = seccion.getByRole("list", { name: "Habilidades que más subirían tu puntaje" }).getByRole("listitem").filter({ has: page.getByRole("heading") });
+    await expect(filas.first()).toBeVisible();
+    await expect(filas.first()).toContainText(/\+\d+/);
+    await expect(filas.first()).toContainText(/Te la piden en \d+ vacantes?/);
+  });
+});

@@ -49,11 +49,20 @@ export const RECURSOS: Record<string, { nombre: string; url: string }> = {
   dotnet: { nombre: "Microsoft Learn: .NET", url: "https://learn.microsoft.com/dotnet/" },
 };
 
+/** Puntaje a partir del cual una vacante cuenta como «cerca». */
+export const CERCA = 50;
+
 export function oportunidades(items: VacantePuntuada[], cvTexto: string, respuestas: Respuestas, ahora: Date, max = 8): Oportunidad[] {
   // Solo empleos (los proyectos freelance piden cosas muy dispersas) y nada que el radar marque como riesgoso.
-  const empleos = items.filter((i) => i.vacante.tipo !== "proyecto" && i.resumen.riesgo !== "riesgo" && i.prioridad.valor !== null);
+  const empleos = items
+    .filter((i) => i.vacante.tipo !== "proyecto" && i.resumen.riesgo !== "riesgo" && i.prioridad.valor !== null)
+    .sort((a, b) => (b.prioridad.valor ?? 0) - (a.prioridad.valor ?? 0));
+  // Las que tienes cerca (50+): lo que les falta es lo que de verdad te acerca. Una de Ruby en la que sacas 20 no
+  // debe recomendarte aprender Ruby. Si hay pocas, se toman las 10 mejores.
+  const cercanas = empleos.filter((i) => (i.prioridad.valor ?? 0) >= CERCA);
+  const consideradas = cercanas.length >= 10 ? cercanas : empleos.slice(0, 10);
   const faltan = new Map<string, VacantePuntuada[]>();
-  for (const it of empleos) {
+  for (const it of consideradas) {
     for (const label of new Set([...it.resumen.brechas, ...it.resumen.transferibles])) {
       const lista = faltan.get(label) ?? [];
       lista.push(it);

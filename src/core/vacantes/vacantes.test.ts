@@ -71,7 +71,16 @@ describe("países", () => {
     expect(paisesDeTexto("USA only").paises).toEqual(["US"]);
     expect(paisesDeTexto("Worldwide")).toEqual({ paises: [], mundial: true });
     expect(paisesDeTexto("Remote - European Union").paises).toContain("ES");
-    expect(paisesDeTexto("Berlin").paises).toEqual([]);
+  });
+
+  it("ciudades sin país cuentan solo si el lugar no es remoto", () => {
+    expect(paisesDeTexto("Seattle, San Francisco, New York").paises).toEqual(["US"]);
+    expect(paisesDeTexto("NYC-Privy").paises).toEqual(["US"]);
+    expect(paisesDeTexto("Dublin").paises).toEqual(["IE"]);
+    expect(paisesDeTexto("Berlin").paises).toEqual(["DE"]);
+    expect(paisesDeTexto("Guadalajara o Monterrey").paises).toEqual(["MX"]);
+    expect(paisesDeTexto("Remote (Berlin HQ)").paises).toEqual([]);
+    expect(paisesDeTexto("Remote, United States").paises).toEqual(["US"]);
   });
 });
 

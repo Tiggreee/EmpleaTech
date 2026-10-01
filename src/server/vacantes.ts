@@ -2,7 +2,7 @@ import type { PoolClient } from "pg";
 import { APP_PROFILE_ID, APP_PROFILE_NAME } from "@/config/app";
 import { sanitizarResumen } from "@/core/analisis/resumen";
 import { cvActivo, estructuradoDe } from "@/core/perfil/perfil";
-import { buscarVacantes, huellaPuntaje, ordenar, puntuar, type ResultadoFuente, type VacantePuntuada } from "@/core/vacantes/busqueda";
+import { buscarVacantes, huellaPuntaje, ordenar, puntuar, respuestasParaPuntuar, type ResultadoFuente, type VacantePuntuada } from "@/core/vacantes/busqueda";
 import { oportunidades, type Oportunidad } from "@/core/vacantes/oportunidades";
 import { consultaDe, preferenciasIniciales, sanitizarPreferencias, type PreferenciasBusqueda } from "@/core/vacantes/preferencias";
 import { FUENTES, type FuenteId, type Vacante } from "@/core/vacantes/vacante";
@@ -73,7 +73,8 @@ export async function repuntuarSiCambio(ahora = new Date()): Promise<number> {
   const cv = cvActivo(perfil);
   if (!cv) return 0;
   const aprendizaje = await calcularAprendizaje(ahora);
-  const huella = huellaPuntaje(cv, perfil.respuestas, huellaAprendizaje(aprendizaje));
+  const respuestas = respuestasParaPuntuar(perfil.respuestas, estructuradoDe(cv).basics.location?.countryCode);
+  const huella = huellaPuntaje(cv, respuestas, huellaAprendizaje(aprendizaje));
   const { rows } = await getPool().query(
     `select id, datos_json from vacantes where profile_id = $1 and estado = 'nueva' and huella is distinct from $2 limit 500`,
     [APP_PROFILE_ID, huella],
@@ -82,7 +83,7 @@ export async function repuntuarSiCambio(ahora = new Date()): Promise<number> {
   await withTransaction(async (client) => {
     for (const r of rows) {
       const v = r.datos_json as Vacante;
-      const p = puntuar(v, cv.texto, perfil.respuestas, ahora, ajustePorAprendizaje(aprendizaje, v));
+      const p = puntuar(v, cv.texto, respuestas, ahora, ajustePorAprendizaje(aprendizaje, v));
       await client.query(
         `update vacantes set resumen_json = $3::jsonb, prioridad_json = $4::jsonb, score = $5, huella = $6, actualizada_en = now()
           where profile_id = $1 and id = $2`,
@@ -128,7 +129,7 @@ export async function oportunidadesDeMejora(ahora = new Date()): Promise<Oportun
   const empleos = items.filter((i) => i.vacante.tipo !== "proyecto" && i.prioridad.valor !== null);
   const valores = empleos.map((i) => i.prioridad.valor as number);
   return {
-    oportunidades: oportunidades(items, cv.texto, perfil.respuestas, ahora),
+    oportunidades: oportunidades(items, cv.texto, respuestasParaPuntuar(perfil.respuestas, estructuradoDe(cv).basics.location?.countryCode), ahora),
     empleos: empleos.length,
     sobre90: valores.filter((v) => v >= 90).length,
     mejor: valores.length ? Math.max(...valores) : null,
@@ -227,7 +228,8 @@ export async function buscarAhora(ahora = new Date()): Promise<ResultadoBusqueda
     { ultimaConsulta: ultimas },
   );
   const aprendizaje = await calcularAprendizaje(ahora);
-  const puntuadas = ordenar(vacantes.map((v) => puntuar(v, cv.texto, perfil.respuestas, ahora, ajustePorAprendizaje(aprendizaje, v))));
-  const nuevas = await guardarResultados(puntuadas, reporte, ahora, huellaPuntaje(cv, perfil.respuestas, huellaAprendizaje(aprendizaje)));
+  const paraPuntuar = respuestasParaPuntuar(perfil.respuestas, estructuradoDe(cv).basics.location?.countryCode);
+  const puntuadas = ordenar(vacantes.map((v) => puntuar(v, cv.texto, paraPuntuar, ahora, ajustePorAprendizaje(aprendizaje, v))));
+  const nuevas = await guardarResultados(puntuadas, reporte, ahora, huellaPuntaje(cv, paraPuntuar, huellaAprendizaje(aprendizaje)));
   return { reporte, encontradas: puntuadas.length, nuevas };
 }

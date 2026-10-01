@@ -121,7 +121,7 @@ const NIVEL_ENTRADA = /\b(junior|jr|intern|internship|trainee|practicante|becari
  * FNV-1a de 32 bits: basta para detectar cambios, no es criptográfico.
  */
 /** Súbela cuando cambie cómo se puntúa: las vacantes guardadas se vuelven a puntuar solas. */
-const VERSION_PUNTAJE = 4;
+const VERSION_PUNTAJE = 5;
 
 /** Reglas del radar que no aplican al ordenar vacantes (ver detectarAlertas). */
 const OMITIR_EN_BUSQUEDA = ["sin-rango-salarial"] as const;
@@ -133,6 +133,16 @@ export function huellaPuntaje(cv: { id: string; actualizadoEn: string }, respues
     h = Math.imul(h, 0x01000193) >>> 0;
   }
   return `${cv.id}|${cv.actualizadoEn}|v${VERSION_PUNTAJE}|${h.toString(16)}`;
+}
+
+/**
+ * Respuestas con las que se ordenan las vacantes. Si no declaraste en qué países puedes trabajar, se toma el país de
+ * tu CV: a quien vive en Morelia no le sirve que una vacante presencial en Seattle le salga primero. Solo para ordenar;
+ * los formularios se llenan únicamente con lo que tú declaraste.
+ */
+export function respuestasParaPuntuar(respuestas: Respuestas, paisDelCv: string | undefined): Respuestas {
+  if (respuestas.paisesAutorizado.length || !paisDelCv) return respuestas;
+  return { ...respuestas, paisesAutorizado: [paisDelCv] };
 }
 
 function textoParaAnalizar(v: Vacante): string {

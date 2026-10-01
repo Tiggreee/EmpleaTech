@@ -35,6 +35,27 @@ const NOMBRES: Record<string, string> = (() => {
   return { ...out, ...alias };
 })();
 
+/**
+ * Ciudades que las ofertas ponen sin el país («Seattle, San Francisco», «NYC», «Dublin»). Solo cuentan si la ubicación
+ * no dice que es remota: «Remote (Berlin HQ)» no obliga a vivir en Berlín. Fuera las ambiguas (San José, Santiago,
+ * León, Mérida, Cambridge…), que existen en más de un país.
+ */
+const CIUDADES: Record<string, string> = {
+  "new york": "US", nyc: "US", "san francisco": "US", sf: "US", "bay area": "US", seattle: "US", boston: "US", chicago: "US",
+  "los angeles": "US", denver: "US", atlanta: "US", miami: "US", dallas: "US", houston: "US", "palo alto": "US",
+  "mountain view": "US", "salt lake city": "US", philadelphia: "US", pittsburgh: "US", "san diego": "US", raleigh: "US",
+  toronto: "CA", vancouver: "CA", montreal: "CA", ottawa: "CA", calgary: "CA", waterloo: "CA",
+  london: "GB", londres: "GB", manchester: "GB", edinburgh: "GB", dublin: "IE",
+  berlin: "DE", munich: "DE", munchen: "DE", hamburg: "DE", frankfurt: "DE", amsterdam: "NL", paris: "FR",
+  madrid: "ES", barcelona: "ES", lisbon: "PT", lisboa: "PT", warsaw: "PL", varsovia: "PL", krakow: "PL",
+  bengaluru: "IN", bangalore: "IN", hyderabad: "IN", pune: "IN", chennai: "IN", mumbai: "IN", gurgaon: "IN", gurugram: "IN", noida: "IN",
+  tokyo: "JP", sydney: "AU", melbourne: "AU", "sao paulo": "BR", "rio de janeiro": "BR", "buenos aires": "AR",
+  bogota: "CO", medellin: "CO", montevideo: "UY", lima: "PE",
+  guadalajara: "MX", monterrey: "MX", queretaro: "MX", puebla: "MX", tijuana: "MX", morelia: "MX", zapopan: "MX", cancun: "MX",
+};
+
+const REMOTO = /\b(remote|remoto|remota|anywhere|home office|teletrabajo)\b/;
+
 /** Estados de EE. UU. escritos como «Austin, TX». */
 const ESTADOS_EEUU = new Set(
   "AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC".split(" "),
@@ -79,6 +100,18 @@ export function paisesDeTexto(...textos: (string | undefined | null)[]): PaisesD
       }
     }
     for (const m of t.matchAll(/,\s*([A-Z]{2})\b/g)) if (ESTADOS_EEUU.has(m[1])) out.add("US");
+    if (!REMOTO.test(f)) {
+      for (let i = 0; i < palabras.length; i++) {
+        for (let n = 3; n >= 1; n--) {
+          const ciudad = CIUDADES[palabras.slice(i, i + n).join(" ")];
+          if (ciudad) {
+            out.add(ciudad);
+            i += n - 1;
+            break;
+          }
+        }
+      }
+    }
   }
   return { paises: [...out].sort(), mundial: mundial && out.size === 0 };
 }

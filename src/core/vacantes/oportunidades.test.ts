@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { analizar } from "../analisis/analizador";
 import { detectarAlertas } from "../radar/radar";
 import { RESPUESTAS_VACIAS } from "../perfil/respuestas";
-import { puntuar } from "./busqueda";
+import { puntuar, respuestasParaPuntuar } from "./busqueda";
 import { oportunidades } from "./oportunidades";
 import { crearVacante, type Vacante } from "./vacante";
 
@@ -81,5 +81,20 @@ describe("qué te subiría el puntaje", () => {
     const antes = vacantes[0].prioridad.valor ?? 0;
     const despues = puntuar(vacantes[0].vacante, `${CV}\nMicroservices`, RESPUESTAS_VACIAS, AHORA).prioridad.valor ?? 0;
     expect(despues).toBeGreaterThan(antes);
+  });
+});
+
+describe("país para ordenar", () => {
+  it("si no declaraste países, se usa el de tu CV; lo declarado manda", () => {
+    expect(respuestasParaPuntuar(RESPUESTAS_VACIAS, "MX").paisesAutorizado).toEqual(["MX"]);
+    expect(respuestasParaPuntuar({ ...RESPUESTAS_VACIAS, paisesAutorizado: ["US"] }, "MX").paisesAutorizado).toEqual(["US"]);
+    expect(respuestasParaPuntuar(RESPUESTAS_VACIAS, undefined)).toBe(RESPUESTAS_VACIAS);
+  });
+
+  it("una vacante presencial en Seattle baja para quien vive en México", () => {
+    const enSeattle = crearVacante("greenhouse", { idExterno: "s", titulo: "Backend Engineer", empresa: "Acme", url: "https://ejemplo.com/s", descripcion: pedido(""), paises: ["US"] });
+    if (!enSeattle) throw new Error("vacante inválida");
+    const p = puntuar(enSeattle, CV, respuestasParaPuntuar(RESPUESTAS_VACIAS, "MX"), AHORA);
+    expect(p.prioridad.factores.join(" ")).toMatch(/Pide residir en US \(−25\)/);
   });
 });

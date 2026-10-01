@@ -34,7 +34,7 @@ export default function QueMejorar() {
             Qué te subiría el puntaje
           </h2>
           <p className="mt-2 max-w-2xl text-tenue">
-            Lo que más te piden las vacantes que encontramos y tu CV todavía no muestra. Si ya lo dominas, agrégalo a tu CV con un ejemplo; si no, es lo que más vale la pena aprender.
+            Lo que piden las vacantes que tienes cerca (50 puntos o más) y tu CV todavía no muestra. Si ya lo dominas, agrégalo a tu CV con un ejemplo; si no, es lo que más vale la pena aprender.
           </p>
         </div>
         {datos && datos.empleos > 0 && (

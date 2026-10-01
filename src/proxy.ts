@@ -1,13 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { hostsExtra, rechazoDeAcceso } from "@/server/acceso";
-import { COOKIE_SESION, accesoConContrasena, rutaPublica, secretoDeSesion, tokenValido } from "@/server/sesion";
+import { selloVale } from "@/server/cuenta";
+import { COOKIE_SESION, accesoConContrasena, leerToken, rutaPublica, secretoDeSesion, type TipoToken } from "@/server/sesion";
 
 const json = (error: string, status: number) => NextResponse.json({ error }, { status, headers: { "Cache-Control": "no-store" } });
 
 /**
  * Filtro antes de cada página y API. En tu computadora: solo ella y ninguna otra página puede escribir (ver
  * server/acceso). En internet (EMPLEATECH_AUTH=1): además, sin tu sesión no se ve nada; la extensión entra con su
- * token y el cron diario con su clave (ver server/sesion).
+ * token y el cron diario con su clave (ver server/sesion). Un token solo vale si trae el sello vigente de tu cuenta:
+ * cambiar la contraseña o cerrar sesión en todos lados deja fuera a los anteriores en la siguiente petición.
  */
 export async function proxy(request: NextRequest) {
   const rechazo = rechazoDeAcceso(
@@ -35,13 +37,21 @@ export async function proxy(request: NextRequest) {
     return json("Falta configurar el inicio de sesión (EMPLEATECH_SECRETO).", 503);
   }
 
-  if (ruta.startsWith("/api/autollenado")) {
-    // La verificación previa de CORS no lleva credenciales; la ruta decide qué orígenes acepta.
-    if (request.method === "OPTIONS") return NextResponse.next();
-    const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-    if (await tokenValido(bearer, "extension", secreto)) return NextResponse.next();
+  const vale = async (token: string | null | undefined, tipo: TipoToken) => {
+    const t = await leerToken(token, tipo, secreto);
+    return !!t && (await selloVale(t.sello));
+  };
+  try {
+    if (ruta.startsWith("/api/autollenado")) {
+      // La verificación previa de CORS no lleva credenciales; la ruta decide qué orígenes acepta.
+      if (request.method === "OPTIONS") return NextResponse.next();
+      if (await vale(request.headers.get("authorization")?.replace(/^Bearer\s+/i, ""), "extension")) return NextResponse.next();
+    }
+    if (await vale(request.cookies.get(COOKIE_SESION)?.value, "sesion")) return NextResponse.next();
+  } catch (error) {
+    console.error(error);
+    return json("No pude revisar tu sesión. Intenta de nuevo en un momento.", 503);
   }
-  if (await tokenValido(request.cookies.get(COOKIE_SESION)?.value, "sesion", secreto)) return NextResponse.next();
 
   if (ruta.startsWith("/api/")) return json("Inicia sesión.", 401);
   const destino = new URL("/entrar", request.url);

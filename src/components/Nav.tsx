@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { APP_NAME } from "@/config/app";
+import { borrarEstadoLocal } from "@/storage/almacenes";
 
 const ENLACES = [
   { href: "/panel", texto: "Panel" },
@@ -34,15 +35,18 @@ export function Logo({ tamano = 24 }: { tamano?: number }) {
 
 async function salir() {
   await fetch("/api/acceso", { method: "DELETE" }).catch(() => undefined);
+  // La copia de tu perfil y tu CV que guarda este navegador también se va: en una computadora prestada no queda nada.
+  borrarEstadoLocal();
   // Recarga completa a propósito (no router.push): que tus datos en memoria no se queden en la pestaña.
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination
   window.location.href = "/entrar";
 }
 
-/** `conSesion`: la app vive en internet y pide contraseña; entonces aparece «Salir». */
+/** `conSesion`: la app vive en internet y pide contraseña; entonces aparecen «Seguridad» y «Salir». */
 export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
   const ruta = usePathname();
   if (ruta === "/entrar") return null;
+  const enlaces = conSesion ? [...ENLACES, { href: "/seguridad", texto: "Seguridad" }] : ENLACES;
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-[#05070f]/70 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-3" aria-label="Principal">
@@ -51,7 +55,7 @@ export default function Nav({ conSesion = false }: { conSesion?: boolean }) {
           <span>{APP_NAME}</span>
         </Link>
         <ul className="flex flex-wrap items-center gap-0.5 text-sm">
-          {ENLACES.map((e) => {
+          {enlaces.map((e) => {
             const activo = ruta === e.href;
             return (
               <li key={e.href}>

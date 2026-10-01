@@ -31,6 +31,7 @@ export default function ConectarExtension() {
         </li>
         <li>Chrome te pedirá permiso para hablar con esa dirección: acéptalo.</li>
       </ol>
+      <p className="mt-2 text-xs text-tenue">Si cambias tu contraseña, activas la verificación en dos pasos o cierras sesión en todos lados, la extensión se desconecta: genera un token nuevo.</p>
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Boton onClick={() => void generar()}>{token ? "Generar otro" : "Generar token"}</Boton>
         {token && (

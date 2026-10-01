@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { ok, respuestaError } from "@/server/api";
+import { olvidarIntentosViejos } from "@/server/intentos";
 import { buscarAhora } from "@/server/vacantes";
 
 export const runtime = "nodejs";
@@ -21,6 +22,7 @@ export async function GET(request: Request) {
   if (!autorizado(request)) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   try {
     const r = await buscarAhora();
+    await olvidarIntentosViejos();
     return ok({ nuevas: r.nuevas, fuentes: r.reporte.map((f) => ({ fuente: f.fuente, estado: f.estado, aceptadas: f.aceptadas })) });
   } catch (error) {
     return respuestaError(error);

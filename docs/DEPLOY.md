@@ -48,6 +48,34 @@ Por eso el arranque abre Docker con `start` (no como proceso hijo) y `detener` n
   página (CSRF). Si algún día la sirves con otro nombre, agrégalo en `EMPLEATECH_HOSTS`.
 - La extensión solo habla con `/api/autollenado`, con su encabezado propio y origen `chrome-extension://`.
 
+## Seguridad en internet (`EMPLEATECH_AUTH=1`)
+
+- **Sesión en cookie `HttpOnly` + `Secure` + `SameSite=Lax`**, nunca en `localStorage`: un script inyectado no
+  puede leerla. Al salir también se borra la copia local de tu perfil.
+- **Todo se valida en el servidor.** `src/proxy.ts` revisa cada página y API; `/api/seguridad` vuelve a revisar.
+- **Verificación en dos pasos** (TOTP, cualquier app de autenticación) desde **Seguridad**, con 8 códigos de
+  respaldo de un solo uso. El secreto se guarda cifrado con una llave derivada de `EMPLEATECH_SECRETO`; un código ya
+  usado no sirve otra vez.
+- **Límite de intentos en la base** (no en memoria: en Vercel cada petición puede caer en otra instancia). 5 fallos
+  bloquean 15 minutos; cada bloqueo seguido dura el doble, hasta un día. La contraseña se cuenta por IP; los códigos,
+  por cuenta.
+- **Contraseñas fuertes de verdad**: mínimo 12 caracteres y sin palabras comunes, secuencias (`123456`, `qwerty`) ni
+  patrones repetidos. La regla corre en el navegador para guiarte y en el servidor para decidir.
+- **Sello de sesiones**: cambiar la contraseña, activar o quitar la verificación, o «Cerrar sesión en todos lados»
+  invalida al instante todas las demás sesiones y el token de la extensión.
+
+No cambies `EMPLEATECH_SECRETO` para cerrar sesiones (usa el botón): si lo cambias con la verificación activa, tu app
+de autenticación deja de servir y solo entras con un código de respaldo.
+
+**Si te quedas fuera** (olvidaste la contraseña, o perdiste el teléfono y los códigos), en la consola SQL de Neon:
+
+```sql
+delete from intentos_acceso;
+delete from acceso;
+```
+
+Luego entra a `/entrar` y vuelve a crear tu contraseña con `EMPLEATECH_CODIGO_INICIAL`. Tus datos no se tocan.
+
 ## Variables mínimas
 
 - `DATABASE_URL`

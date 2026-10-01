@@ -1,36 +1,17 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { NextResponse } from "next/server";
+import { evaluarContrasena } from "@/core/acceso/fuerza";
 import { ErrorHttp, leerJson, respuestaError } from "@/server/api";
-import { MIN_CONTRASENA, bloqueado, guardarHash, hashear, leerHash, registrarIntento, verificar, type Intentos } from "@/server/contrasena";
-import { COOKIE_SESION, DURACION, accesoConContrasena, crearToken, secretoDeSesion, tokenValido } from "@/server/sesion";
+import { hashear, verificar } from "@/server/contrasena";
+import { crearCuenta, leerCuenta } from "@/server/cuenta";
+import { comprobarSegundoFactor, conPaso2, conSesion, palabrasDelSitio, sesionVigente, sinCache, sinSesion } from "@/server/dosPasos";
+import { apartarIntento, ipDeCliente, limpiarIntentos } from "@/server/intentos";
+import { accesoConContrasena, crearToken, secretoDeSesion } from "@/server/sesion";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Un solo servidor: el conteo de intentos vive en memoria.
-const intentos = new Map<string, Intentos>();
-
-function origenDe(request: Request): string {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "local";
-}
-
-function sinCache(datos: unknown, status = 200) {
-  return NextResponse.json(datos, { status, headers: { "Cache-Control": "no-store" } });
-}
-
-async function conSesion(datos: unknown) {
-  const res = sinCache(datos);
-  res.cookies.set(COOKIE_SESION, await crearToken("sesion", secretoDeSesion()), { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: DURACION.sesion });
-  return res;
-}
-
-const galletaDe = (request: Request) =>
-  request.headers
-    .get("cookie")
-    ?.split(";")
-    .map((c) => c.trim())
-    .find((c) => c.startsWith(`${COOKIE_SESION}=`))
-    ?.slice(COOKIE_SESION.length + 1);
+/** Los códigos de la app se cuentan por cuenta (no por IP): para llegar ahí ya hizo falta tu contraseña. */
+const CLAVE_CODIGOS = "cuenta:2fa";
 
 /** El código de un solo uso se compara en tiempo constante (sobre su huella, para que midan lo mismo). */
 function codigoCorrecto(dado: unknown): boolean {
@@ -40,12 +21,16 @@ function codigoCorrecto(dado: unknown): boolean {
   return timingSafeEqual(h(dado.trim()), h(esperado));
 }
 
+async function apartar(clave: string) {
+  const espera = await apartarIntento(clave);
+  if (espera) throw new ErrorHttp(429, `Demasiados intentos. Espera ${espera} min.`);
+}
+
 export async function GET(request: Request) {
   try {
-    const requerido = accesoConContrasena();
-    if (!requerido) return sinCache({ requerido: false, configurado: true, sesion: true });
-    const [hash, sesion] = await Promise.all([leerHash(), tokenValido(galletaDe(request), "sesion", secretoDeSesion())]);
-    return sinCache({ requerido: true, configurado: !!hash, sesion });
+    if (!accesoConContrasena()) return sinCache({ requerido: false, configurado: true, sesion: true, segundoPaso: false });
+    const [cuenta, sesion, paso2] = await Promise.all([leerCuenta(), sesionVigente(request), sesionVigente(request, "paso2")]);
+    return sinCache({ requerido: true, configurado: !!cuenta, sesion: !!sesion, segundoPaso: !sesion && !!paso2 });
   } catch (error) {
     return respuestaError(error);
   }
@@ -55,33 +40,45 @@ export async function POST(request: Request) {
   try {
     if (!accesoConContrasena()) throw new ErrorHttp(404, "El inicio de sesión no está activado en esta instalación.");
     const body = await leerJson(request, 5_000);
-    const origen = origenDe(request);
-
-    if (body.accion === "token-extension") {
-      if (!(await tokenValido(galletaDe(request), "sesion", secretoDeSesion()))) throw new ErrorHttp(401, "Inicia sesión primero.");
-      return sinCache({ token: await crearToken("extension", secretoDeSesion()) });
-    }
-
-    const espera = bloqueado(intentos, origen);
-    if (espera) throw new ErrorHttp(429, `Demasiados intentos. Espera ${espera} min.`);
+    const ip = `ip:${ipDeCliente(request.headers)}`;
     const contrasena = typeof body.contrasena === "string" ? body.contrasena : "";
 
+    if (body.accion === "token-extension") {
+      const sello = await sesionVigente(request);
+      if (!sello) throw new ErrorHttp(401, "Inicia sesión primero.");
+      return sinCache({ token: await crearToken("extension", secretoDeSesion(), sello) });
+    }
+
     if (body.accion === "crear") {
-      const valido = codigoCorrecto(body.codigo);
-      registrarIntento(intentos, origen, valido);
-      if (!valido) throw new ErrorHttp(401, "El código de acceso no es correcto.");
-      if (contrasena.length < MIN_CONTRASENA) throw new ErrorHttp(400, `Usa al menos ${MIN_CONTRASENA} caracteres.`);
-      if (!(await guardarHash(await hashear(contrasena), true))) throw new ErrorHttp(409, "Ya existe una contraseña. Inicia sesión.");
-      return conSesion({ ok: true });
+      await apartar(ip);
+      if (!codigoCorrecto(body.codigo)) throw new ErrorHttp(401, "El código de acceso no es correcto.");
+      await limpiarIntentos(ip);
+      const fuerza = evaluarContrasena(contrasena, palabrasDelSitio());
+      if (!fuerza.valida) throw new ErrorHttp(400, fuerza.problemas[0]);
+      const sello = await crearCuenta(await hashear(contrasena));
+      if (!sello) throw new ErrorHttp(409, "Ya existe una contraseña. Inicia sesión.");
+      return conSesion({ ok: true }, sello);
     }
 
     if (body.accion === "entrar") {
-      const hash = await leerHash();
-      if (!hash) throw new ErrorHttp(409, "Primero crea tu contraseña con tu código de acceso.");
-      const valida = await verificar(contrasena, hash);
-      registrarIntento(intentos, origen, valida);
-      if (!valida) throw new ErrorHttp(401, "Contraseña incorrecta.");
-      return conSesion({ ok: true });
+      // El intento se aparta antes de revisar: así ni mandando muchos a la vez se pasan del límite.
+      await apartar(ip);
+      const cuenta = await leerCuenta();
+      if (!cuenta) throw new ErrorHttp(409, "Primero crea tu contraseña con tu código de acceso.");
+      if (!(await verificar(contrasena, cuenta.hash))) throw new ErrorHttp(401, "Contraseña incorrecta.");
+      await limpiarIntentos(ip);
+      return cuenta.totpActivo ? conPaso2(cuenta.sello) : conSesion({ ok: true }, cuenta.sello);
+    }
+
+    if (body.accion === "segundo-paso") {
+      const sello = await sesionVigente(request, "paso2");
+      const cuenta = await leerCuenta();
+      if (!sello || !cuenta?.totpActivo) throw new ErrorHttp(401, "Tu inicio de sesión venció. Escribe tu contraseña otra vez.");
+      await apartar(CLAVE_CODIGOS);
+      const r = await comprobarSegundoFactor(cuenta, body.codigo);
+      if (!r.ok) throw new ErrorHttp(401, r.mensaje);
+      await limpiarIntentos(CLAVE_CODIGOS);
+      return conSesion({ ok: true, codigosRestantes: r.restantes }, cuenta.sello);
     }
 
     throw new ErrorHttp(400, "Acción desconocida.");
@@ -90,9 +87,7 @@ export async function POST(request: Request) {
   }
 }
 
-/** Cerrar sesión. */
+/** Cerrar sesión (en este navegador; para todos lados está /seguridad). */
 export async function DELETE() {
-  const res = sinCache({ ok: true });
-  res.cookies.set(COOKIE_SESION, "", { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 0 });
-  return res;
+  return sinSesion({ ok: true });
 }

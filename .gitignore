@@ -24,6 +24,7 @@ dev.log
 
 extension/dist/
 extension/*.zip
+extension/tienda/*.webm
 
 # Vercel (enlace local del proyecto)
 /.vercel

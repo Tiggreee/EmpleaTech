@@ -47,7 +47,7 @@ export function httpReal(timeoutMs = 25_000): Http {
     async json(url, init) {
       const res = await fetch(url, {
         method: init?.method ?? "GET",
-        headers: { Accept: "application/json", "User-Agent": "EmpleaTech/0.1 (+https://github.com/Tiggreee/empleatechnology)", ...init?.headers },
+        headers: { Accept: "application/json", "User-Agent": "EmpleaTech/1.0 (+https://empleatech.site)", ...init?.headers },
         body: init?.body,
         signal: AbortSignal.timeout(timeoutMs),
         redirect: "follow",

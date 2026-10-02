@@ -16,14 +16,15 @@ listo para copiar. Cuenta: de **no comerciante** (la extensión es gratis, sin a
 - **Resumen (máx. 132):** Llena tus formularios de postulación y tus propuestas freelance con tu perfil de EmpleaTech. Tú revisas y tú envías.
 - **Categoría:** Productividad → Herramientas.
 - **Idioma:** Español (Latinoamérica).
-- **Descripción:**
+- **Descripción** (sin enumerar plataformas: la primera versión se rechazó por «spam de palabras clave», Yellow Argon,
+  por listar seis nombres de sitios; tampoco van en el mosaico ni en la marquesina):
 
   > EmpleaTech es tu asistente personal de búsqueda de empleo. Esta extensión es su compañera en el navegador: cuando
   > abres el formulario de una vacante, lo llena por ti con tu perfil y deja todo listo para que tú lo revises y lo envíes.
   >
   > Qué hace:
-  > • En formularios de Greenhouse, Lever y Ashby llena tus datos, contesta las preguntas que ya conoce, adjunta tu CV y tu carta para esa vacante y marca en rojo lo que falta.
-  > • En Workana, Upwork y Freelancer.com arma una propuesta para el proyecto que tienes abierto y la pone en su cuadro.
+  > • En los formularios de postulación de las plataformas de reclutamiento compatibles, llena tus datos, contesta las preguntas que ya conoce, adjunta tu CV y tu carta para esa vacante y marca en rojo lo que falta.
+  > • En las plataformas de proyectos freelance compatibles, arma una propuesta para el proyecto que tienes abierto y la pone en su cuadro.
   > • Cuando envías, registra la postulación en tu seguimiento y aprende tus respuestas nuevas para la próxima vez.
   >
   > Qué no hace:
@@ -34,7 +35,8 @@ listo para copiar. Cuenta: de **no comerciante** (la extensión es gratis, sin a
   > Necesitas una cuenta de EmpleaTech (https://empleatech.site). Para conectarla: en EmpleaTech abre Mi CV → Autollenado y pulsa «Conectar la extensión».
 
 - **Icono:** `extension/iconos/icono-128.png`.
-- **Capturas (1280×800):** `extension/tienda/captura-1-formulario.png`, `captura-2-propuesta.png`, `captura-3-conectar.png`.
+- **Capturas (1280×800):** `extension/tienda/captura-1-formulario.png` y `captura-2-propuesta.png`. (La 3, de la app,
+  muestra un texto que nombra plataformas: no se sube, para no arriesgar otro rechazo por palabras clave.)
 - **Mosaico promocional pequeño (440×280):** `extension/tienda/mosaico-440x280.png`.
 - **Sitio web oficial:** https://empleatech.site
 - **URL de asistencia:** https://empleatech.site/privacidad

@@ -85,7 +85,7 @@ const tarjeta = (cuerpo: string) => `<!doctype html><html><head><meta charset="u
   </div></body></html>`;
 
 const PORTADA = tarjeta(`
-  <div style="font-size:82px;line-height:1;letter-spacing:-3.5px">Tu postulación, lista.<br><span style="color:#b43a0b">Del proceso nos encargamos.</span></div>
+  <div style="font-size:66px;line-height:1.05;letter-spacing:-2.6px;white-space:nowrap">Tu postulación, lista.<br><span style="color:#b43a0b">Del proceso nos encargamos.</span></div>
   <div style="font:600 24px/1.3 Consolas,'Courier New',monospace;letter-spacing:2px;text-transform:uppercase;color:#555">Extensión para Chrome · Empleo y freelance</div>`);
 
 const CIERRE = tarjeta(`
@@ -187,7 +187,10 @@ test("video promocional de la ficha", async ({ page, baseURL }) => {
     await v.goto(`${baseURL}/autollenado`);
     const conectar = v.getByRole("button", { name: "Conectar la extensión" });
     await expect(conectar).toBeVisible();
-    await conectar.scrollIntoViewIfNeeded();
+    // Los pasos para cargarla a mano no van en el video: publicada, esa lista dice «Instálala desde la tienda».
+    await v.locator("main ol").evaluate((el) => (el.style.visibility = "hidden"));
+    // La tarjeta al centro, para que se vea también el aviso de «Conectada».
+    await conectar.evaluate((el) => el.closest("section, div")?.scrollIntoView({ block: "center" }));
     await rotulo(v, "1", "Conéctala a tu cuenta con un clic");
     await v.waitForTimeout(1200);
     await clic(v, conectar);
@@ -216,7 +219,7 @@ test("video promocional de la ficha", async ({ page, baseURL }) => {
     await expect(v.getByText(/Todo lo obligatorio está listo/)).toBeVisible();
     await v.waitForTimeout(1800);
     await clic(v, v.getByRole("button", { name: "Submit application" }));
-    await expect(v.getByText(/Registrada en tu tracker/)).toBeVisible({ timeout: 15_000 });
+    await expect(v.getByText("Registrada en tu tracker: Senior Backend Developer en Acme Pagos.")).toBeVisible({ timeout: 15_000 });
     await rotulo(v, "5", "Se registra sola en tu seguimiento");
     await v.waitForTimeout(3000);
 
@@ -228,7 +231,8 @@ test("video promocional de la ficha", async ({ page, baseURL }) => {
     await expect(v.locator("#bid")).toHaveValue(/Node\.js/);
     await v.waitForTimeout(4000);
 
-    // Cierre.
+    // Cierre (en una página en blanco: ahí no corre ningún script de la extensión).
+    await v.goto("about:blank");
     await v.setContent(CIERRE);
     await v.waitForTimeout(3500);
   } finally {

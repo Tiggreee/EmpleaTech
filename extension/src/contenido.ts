@@ -57,10 +57,11 @@ async function llenar(p: Panel) {
   }
 }
 
-async function avisarEnvio(url: string) {
+/** `titulo`: el del formulario al enviar (el de la página de confirmación suele ser un «Thank you» genérico). */
+async function avisarEnvio(url: string, titulo: string) {
   sessionStorage.removeItem(PENDIENTE);
   try {
-    const r = await mensaje<{ registrada: boolean; empresa: string; puesto: string }>({ tipo: "evento", cuerpo: { tipo: "enviada", url, titulo: document.title } });
+    const r = await mensaje<{ registrada: boolean; empresa: string; puesto: string }>({ tipo: "evento", cuerpo: { tipo: "enviada", url, titulo } });
     panel ??= new Panel();
     panel.mostrar(`<p class="ok">${r.registrada ? `Registrada en tu tracker: ${esc(r.puesto)} en ${esc(r.empresa)}.` : "Esta postulación ya estaba registrada."}</p>`);
   } catch {
@@ -78,12 +79,13 @@ function vigilarEnvio(p: Panel) {
     const items = capturarRespuestas(document);
     if (items.length) void mensaje({ tipo: "evento", cuerpo: { tipo: "aprendizaje", items } }).catch(() => undefined);
     const url = location.href;
-    sessionStorage.setItem(PENDIENTE, JSON.stringify({ url, t: Date.now() }));
+    const titulo = document.title;
+    sessionStorage.setItem(PENDIENTE, JSON.stringify({ url, titulo, t: Date.now() }));
     let intentos = 0;
     const reloj = setInterval(() => {
       if (parecePostulacionEnviada(location.href, document.body?.innerText ?? "")) {
         clearInterval(reloj);
-        void avisarEnvio(url);
+        void avisarEnvio(url, titulo);
       } else if (++intentos > 30) clearInterval(reloj);
     }, 1000);
     p.mostrar(`<p>Enviando… en cuanto el sitio confirme, la registramos en tu tracker.</p>`);
@@ -106,9 +108,9 @@ function iniciar() {
   const pendiente = sessionStorage.getItem(PENDIENTE);
   if (pendiente) {
     try {
-      const { url, t } = JSON.parse(pendiente) as { url: string; t: number };
+      const { url, titulo, t } = JSON.parse(pendiente) as { url: string; titulo?: string; t: number };
       if (Date.now() - t < 5 * 60_000 && parecePostulacionEnviada(location.href, document.body?.innerText ?? "")) {
-        void avisarEnvio(url);
+        void avisarEnvio(url, titulo ?? document.title);
         return;
       }
     } catch {

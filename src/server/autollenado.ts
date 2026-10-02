@@ -3,6 +3,7 @@ import { aniosDeExperiencia, perfilATexto, prepararDocumentos, type IdiomaDoc } 
 import { cvATexto } from "@/core/documentos/formato";
 import { detectarIdioma, prep } from "@/core/analisis/texto";
 import type { DatosAutollenado } from "@/core/autollenado/campos";
+import { puestoYEmpresa } from "@/core/autollenado/envio";
 import { estudioMasAlto } from "@/core/autollenado/estudios";
 import { claveDePostulacion, clavesDeVacante } from "@/core/autollenado/url";
 import type { PerfilJson } from "@/core/perfil/estructurado";
@@ -124,8 +125,10 @@ export async function datosParaFormulario(url: string, ahora = new Date()): Prom
 export async function registrarEnvio(url: string, tituloPagina: string, ahora = new Date()): Promise<{ registrada: boolean; empresa: string; puesto: string }> {
   const [{ perfil, postulaciones }, vacante] = await Promise.all([loadState(), vacantePorUrl(url)]);
   const clave = claveDePostulacion(url);
-  const empresa = vacante?.empresa ?? (new URL(url).hostname.replace(/^www\./, "") || "Empresa");
-  const puesto = vacante?.titulo ?? (tituloPagina.trim().slice(0, 150) || "Postulación");
+  // Fuera de tu búsqueda, el puesto y la empresa salen del título del formulario y de su dirección.
+  const deducido = vacante ? undefined : puestoYEmpresa(url, tituloPagina);
+  const empresa = vacante?.empresa ?? deducido?.empresa ?? "Empresa";
+  const puesto = vacante?.titulo ?? deducido?.puesto ?? "Postulación";
   const destino = vacante?.urlPostular ?? vacante?.url ?? url;
   const claveDestino = claveDePostulacion(destino);
   const yaEsta = postulaciones.some((p) => {

@@ -6,6 +6,7 @@ import { cvActivo } from "@/core/perfil/perfil";
 import { ETIQUETA_RECOMENDACION } from "@/core/seguimiento/prioridad";
 import { SELLO_ITEMS, analizarOferta, crear, marcarPostulada } from "@/core/seguimiento/seguimiento";
 import { armarCola } from "@/core/vacantes/cola";
+import { esFuenteFreelance } from "@/core/vacantes/fuentes";
 import { MODALIDAD, TONO_RECOMENDACION, cambiarEstadoVacante, hace, nombreFuente, pedir, salario, type DatosVacantes, type Guardada } from "@/features/vacantes/cliente";
 import { useDatosApp } from "@/storage/hooks";
 import { Aviso, Bloques, Boton, Encabezado, EnlaceBoton, Insignia, Puntaje, Vacio, type Tono } from "@/ui/ui";
@@ -94,8 +95,13 @@ export default function Hoy() {
   }
 
   const prefs = datos?.preferencias;
-  const cola = datos && ahora && prefs ? armarCola(datos.vacantes, postulaciones, { metaDiaria: prefs.metaDiaria, topePorFuente: prefs.topePorFuente }, ahora) : null;
-  const meta = prefs?.metaDiaria ?? 0;
+  // La meta de freelance solo cuenta si buscas en alguna plataforma de proyectos.
+  const conFreelance = !!prefs?.fuentes.some(esFuenteFreelance);
+  const cola =
+    datos && ahora && prefs
+      ? armarCola(datos.vacantes, postulaciones, { metaDiaria: prefs.metaDiaria, metaFreelance: conFreelance ? prefs.metaFreelance : 0, topePorFuente: prefs.topePorFuente }, ahora)
+      : null;
+  const meta = cola ? cola.empleos.meta + cola.freelance.meta : 0;
   const avance = cola && meta ? Math.min(100, Math.round((cola.enviadasHoy / meta) * 100)) : 0;
   const pendientes = cola?.items.length ?? 0;
   const fecha = ahora?.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
@@ -130,8 +136,16 @@ export default function Hoy() {
             </div>
             <p className="mt-3 font-mono text-xs uppercase tracking-widest text-tenue">
               <span>
-                {cola.enviadasHoy} de {meta} enviadas hoy
+                {cola.empleos.enviadas} de {cola.empleos.meta} empleos
               </span>
+              {cola.freelance.meta > 0 && (
+                <>
+                  {" · "}
+                  <span>
+                    {cola.freelance.enviadas} de {cola.freelance.meta} freelance
+                  </span>
+                </>
+              )}
               {" · "}
               <button type="button" className="uppercase underline underline-offset-4 hover:text-texto" onClick={() => setAjustes(!ajustes)}>
                 Ajustar meta
@@ -148,16 +162,30 @@ export default function Hoy() {
             e.preventDefault();
             const f = new FormData(e.currentTarget);
             void hacer("ajustes", async () => {
-              await pedir("/api/vacantes", { method: "PUT", body: JSON.stringify({ ...prefs, metaDiaria: Number(f.get("meta")), topePorFuente: Number(f.get("tope")) }) });
+              await pedir("/api/vacantes", {
+                method: "PUT",
+                body: JSON.stringify({
+                  ...prefs,
+                  metaDiaria: Number(f.get("meta")),
+                  metaFreelance: f.has("freelance") ? Number(f.get("freelance")) : prefs.metaFreelance,
+                  topePorFuente: Number(f.get("tope")),
+                }),
+              });
               setAjustes(false);
               await recargar();
             });
           }}
         >
           <label>
-            <span className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-tenue">Postulaciones al día</span>
+            <span className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-tenue">Empleos al día</span>
             <input name="meta" type="number" min={1} max={100} defaultValue={prefs.metaDiaria} className="campo w-28" />
           </label>
+          {conFreelance && (
+            <label>
+              <span className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-tenue">Freelance al día</span>
+              <input name="freelance" type="number" min={0} max={50} defaultValue={prefs.metaFreelance} className="campo w-28" />
+            </label>
+          )}
           <label>
             <span className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-tenue">Máximo por plataforma</span>
             <input name="tope" type="number" min={1} max={50} defaultValue={prefs.topePorFuente} className="campo w-28" />

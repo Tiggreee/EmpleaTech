@@ -91,7 +91,7 @@ describe("proyectos que no son lo tuyo (casos vistos con datos reales)", () => {
 });
 
 describe("plataformas freelance en las preferencias", () => {
-  const base: PreferenciasBusqueda = { fuentes: FUENTES_INICIALES, palabras: [], soloRemoto: true, empresas: { greenhouse: [], lever: [], ashby: [] }, maxPorFuente: 60, metaDiaria: 50, topePorFuente: 10 };
+  const base: PreferenciasBusqueda = { fuentes: FUENTES_INICIALES, palabras: [], soloRemoto: true, empresas: { greenhouse: [], lever: [], ashby: [] }, maxPorFuente: 60, metaDiaria: 50, metaFreelance: 3, topePorFuente: 10 };
 
   it("son un extra: no cuentan contra el tope de plataformas de empleo", () => {
     expect(esFuenteFreelance("freelancer")).toBe(true);

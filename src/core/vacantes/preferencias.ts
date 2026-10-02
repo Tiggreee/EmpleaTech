@@ -12,8 +12,9 @@ export interface PreferenciasBusqueda {
   empresas: Record<FuenteDeEmpresas, string[]>;
   /** Tope de vacantes nuevas por plataforma en cada búsqueda. */
   maxPorFuente: number;
-  /** Cola diaria: cuántas postulaciones al día y cuántas como máximo de una misma plataforma. */
+  /** Vacantes del día: cuántos empleos y cuántas propuestas freelance al día, y cuántas como máximo de una misma plataforma. */
   metaDiaria: number;
+  metaFreelance: number;
   topePorFuente: number;
 }
 
@@ -46,6 +47,7 @@ export function sanitizarPreferencias(crudo: unknown, porDefecto: PreferenciasBu
     empresas: { greenhouse: tokens("greenhouse"), lever: tokens("lever"), ashby: tokens("ashby") },
     maxPorFuente: max,
     metaDiaria: entero(o.metaDiaria, porDefecto.metaDiaria, 1, 100),
+    metaFreelance: entero(o.metaFreelance, porDefecto.metaFreelance, 0, 50),
     topePorFuente: entero(o.topePorFuente, porDefecto.topePorFuente, 1, 50),
   };
 }
@@ -72,6 +74,7 @@ export function preferenciasIniciales(perfil: PerfilJson | undefined, respuestas
     empresas,
     maxPorFuente: 60,
     metaDiaria: AJUSTES_COLA_INICIALES.metaDiaria,
+    metaFreelance: AJUSTES_COLA_INICIALES.metaFreelance,
     topePorFuente: AJUSTES_COLA_INICIALES.topePorFuente,
   };
 }

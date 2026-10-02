@@ -42,8 +42,8 @@ await captura(`<div style="padding:16px;line-height:0">${logo(96, 2.8)}</div>`, 
 await captura(
   `<div style="width:440px;height:280px;box-sizing:border-box;background:${PAPEL};border:6px solid ${NEGRO};padding:26px 28px;display:flex;flex-direction:column;justify-content:space-between;font-family:'Arial Black',Arial,sans-serif;color:${NEGRO}">
     <div style="display:flex;align-items:center;gap:12px;line-height:0">${logo(44, 3)}<span style="font-size:26px;line-height:1;letter-spacing:-1px;text-transform:uppercase">EmpleaTech</span></div>
-    <div style="font-size:34px;line-height:1;letter-spacing:-1.5px">Llena tu postulación.<br><span style="color:#b43a0b">Tú la envías.</span></div>
-    <div style="font:600 10.5px/1.3 Consolas,'Courier New',monospace;letter-spacing:0.5px;white-space:nowrap;text-transform:uppercase;color:#555">Empleos y proyectos freelance · Nunca envía por ti</div>
+    <div style="font-size:31px;line-height:1.02;letter-spacing:-1.3px">Nosotros el proceso,<br><span style="color:#b43a0b">tú sólo el envío.</span></div>
+    <div style="font:600 10.5px/1.3 Consolas,'Courier New',monospace;letter-spacing:0.5px;white-space:nowrap;text-transform:uppercase;color:#555">Empleos y proyectos freelance</div>
   </div>`,
   440,
   280,
@@ -54,8 +54,8 @@ await captura(
 await captura(
   `<div style="width:1400px;height:560px;box-sizing:border-box;background:${PAPEL};border:10px solid ${NEGRO};padding:64px 80px;display:flex;flex-direction:column;justify-content:space-between;font-family:'Arial Black',Arial,sans-serif;color:${NEGRO}">
     <div style="display:flex;align-items:center;gap:22px;line-height:0">${logo(88, 3)}<span style="font-size:52px;line-height:1;letter-spacing:-2px;text-transform:uppercase">EmpleaTech</span></div>
-    <div style="font-size:96px;line-height:0.95;letter-spacing:-4px">Llena tu postulación.<br><span style="color:#b43a0b">Tú la envías.</span></div>
-    <div style="font:600 22px/1.3 Consolas,'Courier New',monospace;letter-spacing:2px;white-space:nowrap;text-transform:uppercase;color:#555">Empleos y proyectos freelance · Nunca envía por ti</div>
+    <div style="font-size:92px;line-height:0.97;letter-spacing:-4px">Nosotros el proceso,<br><span style="color:#b43a0b">tú sólo el envío.</span></div>
+    <div style="font:600 22px/1.3 Consolas,'Courier New',monospace;letter-spacing:2px;white-space:nowrap;text-transform:uppercase;color:#555">Empleos y proyectos freelance</div>
   </div>`,
   1400,
   560,

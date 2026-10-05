@@ -2,7 +2,7 @@
   "name": "empleatech",
   "version": "0.1.0",
   "private": true,
-  "description": "Asistente personal de búsqueda de empleo con Next.js y Postgres local.",
+  "description": "Asistente de búsqueda de empleo y proyectos freelance: vacantes puntuadas contra tu CV, documentos a la medida y autollenado con extensión de Chrome.",
   "license": "UNLICENSED",
   "scripts": {
     "dev": "next dev -H 127.0.0.1",
@@ -23,7 +23,8 @@
     "test:e2e": "playwright test",
     "migrate": "node scripts/migrate.mjs",
     "extension": "node scripts/extension.mjs",
-    "tienda": "node scripts/tienda.mjs"
+    "tienda": "node scripts/tienda.mjs",
+    "knip": "knip"
   },
   "dependencies": {
     "jszip": "^3.10.2",
@@ -48,6 +49,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
     "happy-dom": "^20.14.5",
+    "knip": "^5.88.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.0.2"

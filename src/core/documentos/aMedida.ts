@@ -327,6 +327,7 @@ export function prepararDocumentos(p: PerfilJson, o: OfertaParaDocs, respuestas:
   return { idioma, cv, enfasis, brechas, transferibles, carta: carta(p, o, contexto), propuesta: propuesta(p, o, contexto) };
 }
 
+/** @public La versión local del puerto `Redactor`: la de IA, cuando llegue, se conecta en su lugar. */
 export const redactorLocal: Redactor = {
   preparar: async (p, o, r, ahora) => prepararDocumentos(p, o, r, ahora),
 };

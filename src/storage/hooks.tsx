@@ -178,6 +178,3 @@ export function useDatosApp(): ContextoDatos {
   if (!valor) throw new Error("useDatosApp debe usarse dentro de DatosProvider.");
   return valor;
 }
-
-export const usePerfil = () => useDatosApp().perfil;
-export const usePostulaciones = () => useDatosApp().postulaciones;

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["extension/src/*.ts", "scripts/*.mjs", "recon/*.mjs", "e2e/**/*.ts", "playwright*.config.ts"],
+  "project": ["src/**/*.{ts,tsx}", "extension/src/**/*.ts", "scripts/**/*.mjs", "e2e/**/*.ts"],
+  "ignoreDependencies": ["postcss", "tailwindcss", "@types/chrome"],
+  "ignoreBinaries": ["playwright.acceso.config.ts"],
+  "ignoreExportsUsedInFile": true
+}

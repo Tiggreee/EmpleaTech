@@ -9,6 +9,7 @@ import { agregarCv, cvActivo } from "@/core/perfil/perfil";
 import { detectarAlertas } from "@/core/radar/radar";
 import { prioridadDeResumen } from "@/core/seguimiento/prioridad";
 import { analizarOferta, crear } from "@/core/seguimiento/seguimiento";
+import CamposOferta from "@/components/CamposOferta";
 import SubirCv from "@/features/cv/SubirCv";
 import { useDatosApp } from "@/storage/hooks";
 import { Aviso, Boton, Encabezado, Tarjeta } from "@/ui/ui";
@@ -161,11 +162,9 @@ export default function Analizar() {
 
           <Tarjeta titulo="Guardar en mis postulaciones">
             <div className="grid gap-3 sm:grid-cols-3">
-              <input className="campo" placeholder="Empresa" aria-label="Empresa" value={empresa} onChange={(e) => setEmpresa(e.target.value)} maxLength={200} />
-              <input className="campo" placeholder="Puesto" aria-label="Puesto" value={puesto} onChange={(e) => setPuesto(e.target.value)} maxLength={200} />
-              <input className="campo" placeholder="URL de la oferta (opcional)" aria-label="URL de la oferta" value={url} onChange={(e) => setUrl(e.target.value)} />
+              <CamposOferta empresa={empresa} puesto={puesto} url={url} onEmpresa={setEmpresa} onPuesto={setPuesto} onUrl={setUrl} />
             </div>
-            <p className="mt-2 text-xs text-tenue">Al guardar, la oferta y su snapshot quedan listos para panel, tracker y consultas SQL posteriores.</p>
+            <p className="mt-2 text-xs text-tenue">Queda en tus postulaciones con este análisis, lista para darle seguimiento.</p>
             <div className="mt-3 flex flex-wrap items-center gap-4">
               <Boton onClick={guardarOferta} disabled={!empresa.trim() || !puesto.trim()}>Guardar con su análisis</Boton>
               {msg && <p role="status" className={`text-sm ${msg.tono === "ok" ? "text-ok" : "text-riesgo"}`}>{msg.texto}</p>}

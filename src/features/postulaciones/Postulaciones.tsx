@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useMemo, useState, type ChangeEvent } from "react";
+import CamposOferta from "@/components/CamposOferta";
 import { ordenarPorPrioridad, prioridad } from "@/core/seguimiento/prioridad";
 import { ESTADOS, ETIQUETA_ESTADO, crear, estadisticas, exportarCSV, exportarJSON, fusionar, importarJSON, type Postulacion } from "@/core/seguimiento/seguimiento";
 import { useDatosApp } from "@/storage/hooks";
@@ -83,9 +84,7 @@ export default function Postulaciones() {
 
       <section className="vidrio mt-6 p-4" aria-label="Agregar y herramientas">
         <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1.5fr_auto]">
-          <input className="campo" placeholder="Empresa" aria-label="Empresa" value={empresa} onChange={(e) => setEmpresa(e.target.value)} maxLength={200} />
-          <input className="campo" placeholder="Puesto" aria-label="Puesto" value={puesto} onChange={(e) => setPuesto(e.target.value)} maxLength={200} />
-          <input className="campo" placeholder="URL de la oferta (opcional)" aria-label="URL" value={url} onChange={(e) => setUrl(e.target.value)} />
+          <CamposOferta empresa={empresa} puesto={puesto} url={url} onEmpresa={setEmpresa} onPuesto={setPuesto} onUrl={setUrl} />
           <Boton onClick={() => void agregar()} disabled={!empresa.trim() || !puesto.trim()}>Agregar</Boton>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">

@@ -2,7 +2,18 @@ import type { PoolClient } from "pg";
 import { APP_PROFILE_ID, APP_PROFILE_NAME } from "@/config/app";
 import { sanitizarResumen } from "@/core/analisis/resumen";
 import { cvActivo, estructuradoDe } from "@/core/perfil/perfil";
-import { buscarVacantes, huellaPuntaje, ordenar, pasaFiltros, puntuar, respuestasParaPuntuar, type ResultadoFuente, type VacantePuntuada } from "@/core/vacantes/busqueda";
+import {
+  buscarVacantes,
+  huellaPuntaje,
+  ordenar,
+  palabrasDeLaBusqueda,
+  pasaFiltros,
+  puntuar,
+  respuestasParaPuntuar,
+  terminosDelCv,
+  type ResultadoFuente,
+  type VacantePuntuada,
+} from "@/core/vacantes/busqueda";
 import { oportunidades, type Oportunidad } from "@/core/vacantes/oportunidades";
 import { consultaDe, preferenciasIniciales, sanitizarPreferencias, type PreferenciasBusqueda } from "@/core/vacantes/preferencias";
 import { FUENTES, type FuenteId, type Vacante } from "@/core/vacantes/vacante";
@@ -242,9 +253,11 @@ export async function buscarAhora(ahora = new Date()): Promise<ResultadoBusqueda
   const ctx = process.env.EMPLEATECH_FUENTES_FALSAS === "1" ? contextoFalso(ahora) : contextoReal(ahora);
   // Sin países declarados se busca con el de tu CV: traer vacantes que piden vivir en otro país solo llena la lista.
   const paraPuntuar = respuestasParaPuntuar(perfil.respuestas, estructuradoDe(cv).basics.location?.countryCode);
+  // Se busca alrededor de tus herramientas, no solo de los títulos que escribiste; cada hora rota cuáles van primero.
+  const palabras = palabrasDeLaBusqueda(prefs.palabras, terminosDelCv(cv.texto), ahora.getTime() / 3_600_000);
   const { vacantes, reporte } = await buscarVacantes(
     prefs.fuentes.map((f) => ADAPTADORES[f]),
-    consultaDe(prefs, paraPuntuar),
+    { ...consultaDe(prefs, paraPuntuar), palabras },
     ctx,
     { ultimaConsulta: ultimas },
   );

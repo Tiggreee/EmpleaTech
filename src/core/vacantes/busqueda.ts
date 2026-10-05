@@ -1,6 +1,6 @@
 import { analizar } from "../analisis/analizador";
 import { resumir, type ResumenAnalisis } from "../analisis/resumen";
-import { SKILLS, findMentions } from "../analisis/habilidades";
+import { SKILLS, findMentions, type Categoria } from "../analisis/habilidades";
 import { detectarIdioma, escapeRegex, prep } from "../analisis/texto";
 import { ETIQUETAS, type Respuestas } from "../perfil/respuestas";
 import { detectarAlertas } from "../radar/radar";
@@ -60,6 +60,46 @@ function tokens(texto: string): string[] {
 
 /** Niveles del puesto: nunca son la palabra clave («Senior Java Engineer» → «java», no «senior»). */
 const NIVELES = new Set(["senior", "sr", "semi", "ssr", "junior", "jr", "mid", "lead", "principal", "staff", "trainee", "intern", "becario", "practicante"]);
+
+/** Categorías del catálogo que son herramientas de trabajo (no prácticas, idiomas ni habilidades blandas). */
+const CATEGORIAS_HERRAMIENTA = new Set<Categoria>(["lenguaje", "backend", "frontend", "datos", "ia"]);
+
+/** En qué se enfoca una herramienta: Spring Boot → backend. Los lenguajes no dicen enfoque por sí solos. */
+const ENFOQUE: Partial<Record<Categoria, string>> = { backend: "backend", frontend: "frontend", datos: "data", ia: "machine learning" };
+
+/**
+ * Desde qué se busca, según tu CV: tus herramientas (las más mencionadas primero; los equivalentes solo si también
+ * los tienes, como Kotlin junto a Java) y su enfoque (backend, frontend, fullstack si haces ambos, data…).
+ */
+export function terminosDelCv(cvTexto: string, max = 6): string[] {
+  const { folded } = prep(cvTexto);
+  const tuyas = SKILLS.filter((sk) => CATEGORIAS_HERRAMIENTA.has(sk.cat))
+    .map((sk) => ({ sk, n: findMentions(folded, cvTexto, sk).length }))
+    .filter((x) => x.n > 0)
+    .sort((a, b) => b.n - a.n);
+  // El enfoque es lo que domina: mencionar PostgreSQL no vuelve «data» a quien hace backend.
+  const porEnfoque = new Map<string, number>();
+  for (const x of tuyas) {
+    const e = ENFOQUE[x.sk.cat];
+    if (e) porEnfoque.set(e, (porEnfoque.get(e) ?? 0) + x.n);
+  }
+  const tope = Math.max(0, ...porEnfoque.values());
+  const enfoques = [...porEnfoque].filter(([, n]) => n * 2 >= tope).map(([e]) => e);
+  if (enfoques.includes("backend") && enfoques.includes("frontend")) enfoques.push("fullstack");
+  // El primer alias es como se escribe en las vacantes («spring boot»); la etiqueta es para mostrar («REST / APIs»).
+  return [...tuyas.slice(0, max).map((x) => x.sk.aliases[0] ?? x.sk.label), ...enfoques];
+}
+
+/**
+ * Palabras de una búsqueda: las tuyas más las herramientas de tu CV. Las fuentes solo consultan las primeras 3, así que
+ * `vuelta` rota cuáles van primero: cada búsqueda prueba otras sin hacer más consultas.
+ */
+export function palabrasDeLaBusqueda(palabras: string[], herramientas: string[], vuelta: number): string[] {
+  const todas = normalizarPalabras([...palabras, ...herramientas]);
+  if (!todas.length) return todas;
+  const k = (Math.max(0, Math.floor(vuelta)) * 3) % todas.length;
+  return [...todas.slice(k), ...todas.slice(0, k)];
+}
 
 /** La palabra más específica de una búsqueda («Desarrolladora Backend» → «backend»), para APIs que filtran por etiqueta. */
 export function palabraClave(busqueda: string): string | undefined {

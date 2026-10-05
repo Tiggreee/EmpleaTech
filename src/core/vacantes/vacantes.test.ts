@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { RESPUESTAS_VACIAS, sanitizarRespuestas } from "../perfil/respuestas";
-import { buscarVacantes, coincidePalabras, deduplicar, huellaPuntaje, ordenar, pasaFiltros, puntuar } from "./busqueda";
+import { buscarVacantes, coincidePalabras, deduplicar, huellaPuntaje, ordenar, palabrasDeLaBusqueda, pasaFiltros, puntuar, terminosDelCv } from "./busqueda";
 import { INFO_FUENTES, type Consulta, type ContextoFuente, type FuenteVacantes } from "./fuentes";
 import { paisesDeTexto } from "./paises";
 import { atsDeUrl, claveDuplicado, crearVacante, htmlATexto, modalidadDeTexto, salarioDeTexto, type Vacante } from "./vacante";
@@ -189,6 +189,23 @@ describe("casos encontrados con datos reales", () => {
   it("«Back-end», «Full-Stack» y «DevOps» se escriben de muchas formas", () => {
     expect(coincidePalabras(v({ titulo: "AI Back-end Engineer" }), ["Backend Developer"])).toBe(true);
     expect(coincidePalabras(v({ titulo: "Senior Full Stack Engineer" }), ["Full-Stack"])).toBe(true);
+  });
+
+  it("busca desde tus herramientas y su enfoque, nunca con las que no tienes", () => {
+    const cv = "Desarrollador Java\nAPIs REST con Java y Spring Boot. Java 17, Spring Boot, Kotlin y PostgreSQL.";
+    const t = terminosDelCv(cv);
+    expect(t[0]).toBe("java");
+    expect(t).toEqual(expect.arrayContaining(["spring boot", "kotlin", "backend"]));
+    expect(t).not.toContain("python");
+    expect(t).not.toContain("data");
+  });
+
+  it("cada vuelta consulta primero otra tanda, sin perder ninguna palabra", () => {
+    const herramientas = ["Java", "Spring Boot", "Kotlin", "backend"];
+    const una = palabrasDeLaBusqueda(["Java Software Engineer"], herramientas, 0);
+    const otra = palabrasDeLaBusqueda(["Java Software Engineer"], herramientas, 1);
+    expect(otra.slice(0, 3)).not.toEqual(una.slice(0, 3));
+    expect([...otra].sort()).toEqual([...una].sort());
   });
 
   it("«Java Software Engineer» busca Java: no exige que el título también diga «Software»", () => {

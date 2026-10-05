@@ -12,10 +12,10 @@ export interface AjustesCola {
 }
 
 /**
- * 9 empleos y 3 propuestas freelance al día: cada una lleva CV y carta (o propuesta) a la medida y hay que revisarlas;
+ * 10 empleos y 5 propuestas freelance al día: cada una lleva CV y carta (o propuesta) a la medida y hay que revisarlas;
  * con metas grandes se cuelan las que casi no encajan.
  */
-export const AJUSTES_COLA_INICIALES: AjustesCola = { metaDiaria: 9, metaFreelance: 3, topePorFuente: 10 };
+export const AJUSTES_COLA_INICIALES: AjustesCola = { metaDiaria: 10, metaFreelance: 5, topePorFuente: 10 };
 
 /** Plataformas de proyectos: una postulación a una de ellas cuenta para la meta de freelance. */
 const HOSTS_FREELANCE = /(^|\.)(freelancer\.com|usebraintrust\.com|workana\.com|upwork\.com)$/i;

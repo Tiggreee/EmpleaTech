@@ -36,7 +36,7 @@ test.describe("Vacantes de hoy", () => {
     const cola = page.getByRole("list").getByRole("article");
     await expect(cola).toHaveCount(2);
     await expect(page.getByRole("article", { name: /Estafa Rápida/ })).toHaveCount(0);
-    await expect(page.getByText("0 de 9 empleos")).toBeVisible();
+    await expect(page.getByText("0 de 10 empleos")).toBeVisible();
 
     const wizeline = page.getByRole("article", { name: /Wizeline/ });
     await expect(wizeline.getByRole("link", { name: "Abrir formulario ↗" })).toHaveAttribute("href", "https://job-boards.greenhouse.io/wizeline/jobs/555");
@@ -44,7 +44,7 @@ test.describe("Vacantes de hoy", () => {
     page.once("dialog", (d) => void d.accept());
     await wizeline.getByRole("button", { name: "Ya la envié" }).click();
     await expect(page.getByText(/Enviada: Senior Backend Developer \(Node\.js\) en Wizeline/)).toBeVisible();
-    await expect(page.getByText("1 de 9 empleos")).toBeVisible();
+    await expect(page.getByText("1 de 10 empleos")).toBeVisible();
     await expect(cola).toHaveCount(1);
 
     await page.getByRole("article", { name: /Nodo Pagos/ }).getByRole("button", { name: "Saltar" }).click();
@@ -78,7 +78,7 @@ test.describe("Vacantes de hoy", () => {
     page.once("dialog", (d) => void d.accept());
     await deslizar(180);
     await expect(page.getByText(/^Enviada: .+\. Quedó en tus postulaciones\.$/)).toBeVisible();
-    await expect(page.getByText("1 de 9 empleos")).toBeVisible();
+    await expect(page.getByText("1 de 10 empleos")).toBeVisible();
     await expect(page.getByText("Vacante 1 de 1")).toBeVisible();
 
     await deslizar(-180);

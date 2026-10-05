@@ -134,8 +134,12 @@ export function coincidePalabras(v: Vacante, palabras: string[]): boolean {
   });
 }
 
-export function pasaFiltros(v: Pick<Vacante, "modalidad" | "paises">, c: Pick<Consulta, "soloRemoto" | "paises">): { ok: boolean; motivo?: string } {
+export function pasaFiltros(
+  v: Pick<Vacante, "modalidad" | "paises"> & { titulo?: string },
+  c: Pick<Consulta, "soloRemoto" | "paises" | "ocultarEntrada">,
+): { ok: boolean; motivo?: string } {
   if (c.soloRemoto && v.modalidad && v.modalidad !== "remoto") return { ok: false, motivo: "no es remota" };
+  if (c.ocultarEntrada && v.titulo && NIVEL_ENTRADA.test(prep(v.titulo).folded)) return { ok: false, motivo: "beca, práctica o puesto junior" };
   if (c.paises.length && v.paises.length && !v.paises.some((p) => c.paises.includes(p))) {
     return { ok: false, motivo: `solo para ${v.paises.slice(0, 4).join(", ")}` };
   }
@@ -157,7 +161,7 @@ export function deduplicar(vacantes: Vacante[]): Vacante[] {
 // Puntaje
 
 const NIVEL_ALTO = /\b(senior|sr|staff|principal|lead|l[ií]der|head|architect|arquitect[oa])\b/;
-const NIVEL_ENTRADA = /\b(junior|jr|intern|internship|trainee|practicante|becari[oa]|entry level|entry-level)\b/;
+const NIVEL_ENTRADA = /\b(junior|jr|intern|internship|trainee|practicante|practicas|pasante|pasantia|becari[oa]|entry level|entry-level)\b/;
 
 /**
  * Identifica con qué CV y respuestas se calculó un puntaje: si cambian, las vacantes guardadas se vuelven a puntuar.

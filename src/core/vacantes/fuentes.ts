@@ -7,6 +7,8 @@ export interface Consulta {
   /** Palabras del puesto buscado («backend», «node», «data analyst»…). Basta con que coincida una. */
   palabras: string[];
   soloRemoto: boolean;
+  /** Deja fuera becas, prácticas y puestos junior (para quien ya tiene experiencia). */
+  ocultarEntrada?: boolean;
   /** Países (ISO-2) donde la persona puede trabajar; vacantes restringidas a otros países se descartan. */
   paises: string[];
   /** Tableros de empresas a revisar en las fuentes que lo necesitan. */

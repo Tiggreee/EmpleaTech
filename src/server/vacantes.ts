@@ -105,20 +105,29 @@ export async function repuntuarSiCambio(ahora = new Date()): Promise<number> {
   return rows.length;
 }
 
-/** Países donde puedes trabajar: los que declaraste o, si no declaraste ninguno, el de tu CV (como al puntuar). */
-async function paisesParaFiltrar(): Promise<string[]> {
-  const { perfil } = await loadState();
+type FiltroLista = { paises: string[]; ocultarEntrada: boolean };
+
+/**
+ * Con qué se filtra «Por revisar»: los países donde puedes trabajar (los que declaraste o, si no, el de tu CV, como al
+ * puntuar) y si ocultas becas y puestos junior.
+ */
+async function filtroDeLista(): Promise<FiltroLista> {
+  const [{ perfil }, prefs] = await Promise.all([loadState(), leerPreferencias()]);
   const cv = cvActivo(perfil);
-  return respuestasParaPuntuar(perfil.respuestas, cv ? estructuradoDe(cv).basics.location?.countryCode : undefined).paisesAutorizado;
+  const paises = respuestasParaPuntuar(perfil.respuestas, cv ? estructuradoDe(cv).basics.location?.countryCode : undefined).paisesAutorizado;
+  return { paises, ocultarEntrada: prefs.ocultarEntrada };
 }
 
-/** Las que piden residir donde no puedes trabajar no son opciones reales: no salen ni cuentan en «Por revisar». */
-const enTusPaises = (paisesVacante: unknown, paises: string[]) =>
-  pasaFiltros({ paises: Array.isArray(paisesVacante) ? paisesVacante : [] }, { soloRemoto: false, paises }).ok;
+/** Las que no puedes o no quieres tomar (otro país, beca o junior si lo ocultas) no salen ni cuentan en «Por revisar». */
+const seMuestra = (v: { paises?: unknown; titulo?: unknown }, f: FiltroLista) =>
+  pasaFiltros(
+    { paises: Array.isArray(v.paises) ? v.paises : [], titulo: typeof v.titulo === "string" ? v.titulo : undefined },
+    { soloRemoto: false, paises: f.paises, ocultarEntrada: f.ocultarEntrada },
+  ).ok;
 
 export async function listarVacantes(estado: EstadoVacante = "nueva", limite = 200): Promise<VacanteGuardada[]> {
   if (estado === "nueva") await repuntuarSiCambio();
-  const paises = estado === "nueva" ? await paisesParaFiltrar() : [];
+  const filtro: FiltroLista = estado === "nueva" ? await filtroDeLista() : { paises: [], ocultarEntrada: false };
   const { rows } = await getPool().query(
     `select datos_json, resumen_json, prioridad_json, estado, encontrada_en
        from vacantes
@@ -130,7 +139,7 @@ export async function listarVacantes(estado: EstadoVacante = "nueva", limite = 2
   return rows.flatMap((r) => {
     const resumen = sanitizarResumen(r.resumen_json);
     const vacante = r.datos_json as Vacante;
-    if (!resumen || !enTusPaises(vacante.paises, paises)) return [];
+    if (!resumen || !seMuestra(vacante, filtro)) return [];
     return [{ vacante, resumen, prioridad: prioridadSegura(r.prioridad_json), estado: r.estado as EstadoVacante, encontradaEn: new Date(r.encontrada_en).toISOString() }];
   });
 }
@@ -172,13 +181,13 @@ export async function obtenerVacante(id: string): Promise<VacanteGuardada> {
 }
 
 export async function contarVacantes(): Promise<Record<EstadoVacante, number>> {
-  const [{ rows }, paises] = await Promise.all([
-    getPool().query(`select estado, datos_json->'paises' as paises from vacantes where profile_id = $1`, [APP_PROFILE_ID]),
-    paisesParaFiltrar(),
+  const [{ rows }, filtro] = await Promise.all([
+    getPool().query(`select estado, datos_json->'paises' as paises, datos_json->>'titulo' as titulo from vacantes where profile_id = $1`, [APP_PROFILE_ID]),
+    filtroDeLista(),
   ]);
   const out: Record<EstadoVacante, number> = { nueva: 0, guardada: 0, descartada: 0 };
   for (const r of rows) {
-    if (!ESTADOS_VACANTE.includes(r.estado) || (r.estado === "nueva" && !enTusPaises(r.paises, paises))) continue;
+    if (!ESTADOS_VACANTE.includes(r.estado) || (r.estado === "nueva" && !seMuestra(r, filtro))) continue;
     out[r.estado as EstadoVacante] += 1;
   }
   return out;

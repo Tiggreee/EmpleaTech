@@ -9,6 +9,8 @@ export interface PreferenciasBusqueda {
   fuentes: FuenteId[];
   palabras: string[];
   soloRemoto: boolean;
+  /** Ocultar becas, prácticas y puestos junior. */
+  ocultarEntrada: boolean;
   empresas: Record<FuenteDeEmpresas, string[]>;
   /** Tope de vacantes nuevas por plataforma en cada búsqueda. */
   maxPorFuente: number;
@@ -44,6 +46,7 @@ export function sanitizarPreferencias(crudo: unknown, porDefecto: PreferenciasBu
     fuentes,
     palabras: Array.isArray(o.palabras) ? lista(o.palabras, 12, 60) : porDefecto.palabras,
     soloRemoto: typeof o.soloRemoto === "boolean" ? o.soloRemoto : porDefecto.soloRemoto,
+    ocultarEntrada: typeof o.ocultarEntrada === "boolean" ? o.ocultarEntrada : porDefecto.ocultarEntrada,
     empresas: { greenhouse: tokens("greenhouse"), lever: tokens("lever"), ashby: tokens("ashby") },
     maxPorFuente: max,
     metaDiaria: entero(o.metaDiaria, porDefecto.metaDiaria, 1, 100),
@@ -66,11 +69,23 @@ export function palabrasDelPerfil(perfil: PerfilJson | undefined): string[] {
   return [...new Set(limpio.filter((t) => t.length >= 3))].slice(0, 3);
 }
 
+/** Años desde el primer puesto del CV hasta hoy (o hasta el último que terminó); sin fechas, undefined. */
+export function aniosDelPerfil(perfil: PerfilJson | undefined, ahora = new Date()): number | undefined {
+  const anio = (f: string | undefined) => (f && /^\d{4}/.test(f) ? Number(f.slice(0, 4)) : undefined);
+  const inicios = (perfil?.work ?? []).flatMap((w) => anio(w.startDate) ?? []);
+  if (!inicios.length) return undefined;
+  const fines = (perfil?.work ?? []).map((w) => anio(w.endDate) ?? ahora.getFullYear());
+  return Math.max(0, Math.max(...fines) - Math.min(...inicios));
+}
+
 export function preferenciasIniciales(perfil: PerfilJson | undefined, respuestas: Respuestas, empresas: Record<FuenteDeEmpresas, string[]>): PreferenciasBusqueda {
+  const anios = respuestas.aniosExperiencia ?? aniosDelPerfil(perfil);
   return {
     fuentes: FUENTES_INICIALES,
     palabras: palabrasDelPerfil(perfil),
     soloRemoto: respuestas.modalidades.length > 0 && respuestas.modalidades.every((m) => m === "remoto"),
+    // Con 3 años o más de experiencia, las becas y los puestos junior solo llenan la lista; se pueden volver a mostrar.
+    ocultarEntrada: anios !== undefined && anios >= 3,
     empresas,
     maxPorFuente: 60,
     metaDiaria: AJUSTES_COLA_INICIALES.metaDiaria,
@@ -80,5 +95,5 @@ export function preferenciasIniciales(perfil: PerfilJson | undefined, respuestas
 }
 
 export function consultaDe(p: PreferenciasBusqueda, respuestas: Respuestas): Consulta {
-  return { palabras: p.palabras, soloRemoto: p.soloRemoto, paises: respuestas.paisesAutorizado, empresas: p.empresas, maxPorFuente: p.maxPorFuente };
+  return { palabras: p.palabras, soloRemoto: p.soloRemoto, ocultarEntrada: p.ocultarEntrada, paises: respuestas.paisesAutorizado, empresas: p.empresas, maxPorFuente: p.maxPorFuente };
 }

@@ -208,6 +208,15 @@ describe("casos encontrados con datos reales", () => {
     expect([...otra].sort()).toEqual([...una].sort());
   });
 
+  it("con el toggle, deja fuera becas, prácticas y puestos junior; sin él, los muestra", () => {
+    const c = { soloRemoto: false, paises: [] };
+    for (const titulo of ["Becario Java", "Java Trainee", "Junior Backend Developer", "Practicante de desarrollo", "Pasante TI"]) {
+      expect(pasaFiltros(v({ titulo }), { ...c, ocultarEntrada: true }).ok).toBe(false);
+      expect(pasaFiltros(v({ titulo }), c).ok).toBe(true);
+    }
+    expect(pasaFiltros(v({ titulo: "In-person Java Trainer for IT Graduates" }), { ...c, ocultarEntrada: true }).ok).toBe(true);
+  });
+
   it("«Java Software Engineer» busca Java: no exige que el título también diga «Software»", () => {
     expect(coincidePalabras(v({ titulo: "Desarrollador Java Sr" }), ["Java Software Engineer"])).toBe(true);
     expect(coincidePalabras(v({ titulo: "Java Developer (Spring)" }), ["Java Software Engineer"])).toBe(true);

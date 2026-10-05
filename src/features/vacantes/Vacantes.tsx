@@ -60,6 +60,11 @@ function Preferencias({ inicial, fuentes, onGuardar }: { inicial: PreferenciasBu
         Solo vacantes remotas
       </label>
 
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={p.ocultarEntrada} onChange={(e) => setP({ ...p, ocultarEntrada: e.target.checked })} />
+        Ocultar becas, prácticas y puestos junior
+      </label>
+
       <fieldset>
         <legend className="mb-2 text-sm font-medium">
           Plataformas de empleo <span className="font-normal text-tenue">({activasDeEmpleo} de {MAX_FUENTES_ACTIVAS})</span>

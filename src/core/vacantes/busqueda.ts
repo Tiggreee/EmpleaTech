@@ -39,8 +39,11 @@ const EQUIVALENTE: Record<string, string> = {
   proyecto: "project", proyectos: "project", seguridad: "security", nube: "cloud", movil: "mobile", pruebas: "qa", calidad: "qa",
   redes: "network", sistemas: "systems", contador: "accountant", contadora: "accountant", reclutador: "recruiter", reclutadora: "recruiter",
 };
-/** Palabras demasiado generales: solo cuentan si la búsqueda no trae nada más específico. */
-const GENERICAS = new Set(["developer", "engineer", "specialist", "especialista"]);
+/**
+ * Palabras demasiado generales: solo cuentan si la búsqueda no trae nada más específico. «Software» también: con ella,
+ * «Java Software Engineer» exigía las dos palabras y dejaba fuera «Java Developer» o «Desarrollador Java».
+ */
+const GENERICAS = new Set(["developer", "engineer", "software", "specialist", "especialista"]);
 const VACIAS = new Set(["de", "del", "en", "y", "e", "la", "el", "of", "the", "and", "for", "para", "con", "a"]);
 
 function tokens(texto: string): string[] {
@@ -91,7 +94,7 @@ export function coincidePalabras(v: Vacante, palabras: string[]): boolean {
   });
 }
 
-export function pasaFiltros(v: Vacante, c: Pick<Consulta, "soloRemoto" | "paises">): { ok: boolean; motivo?: string } {
+export function pasaFiltros(v: Pick<Vacante, "modalidad" | "paises">, c: Pick<Consulta, "soloRemoto" | "paises">): { ok: boolean; motivo?: string } {
   if (c.soloRemoto && v.modalidad && v.modalidad !== "remoto") return { ok: false, motivo: "no es remota" };
   if (c.paises.length && v.paises.length && !v.paises.some((p) => c.paises.includes(p))) {
     return { ok: false, motivo: `solo para ${v.paises.slice(0, 4).join(", ")}` };

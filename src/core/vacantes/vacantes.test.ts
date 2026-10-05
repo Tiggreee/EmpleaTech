@@ -191,6 +191,12 @@ describe("casos encontrados con datos reales", () => {
     expect(coincidePalabras(v({ titulo: "Senior Full Stack Engineer" }), ["Full-Stack"])).toBe(true);
   });
 
+  it("«Java Software Engineer» busca Java: no exige que el título también diga «Software»", () => {
+    expect(coincidePalabras(v({ titulo: "Desarrollador Java Sr" }), ["Java Software Engineer"])).toBe(true);
+    expect(coincidePalabras(v({ titulo: "Java Developer (Spring)" }), ["Java Software Engineer"])).toBe(true);
+    expect(coincidePalabras(v({ titulo: "Software Engineer, Payments" }), ["Java Software Engineer"])).toBe(false);
+  });
+
   it("en el tablero oficial de la empresa una vacante antigua sigue abierta", () => {
     const cv = "Backend con Node.js y PostgreSQL.";
     const vieja = { publicadaEn: "2025-01-01T00:00:00Z" };

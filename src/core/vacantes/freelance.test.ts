@@ -38,7 +38,7 @@ describe("búsqueda de proyectos freelance", () => {
 
   it("un empleo sigue pidiendo todas las palabras importantes del puesto", () => {
     const empleo = { ...proyecto(), tipo: undefined };
-    expect(coincidePalabras(empleo, ["java software engineer"])).toBe(false);
+    expect(coincidePalabras(empleo, ["java full stack developer"])).toBe(false);
   });
 
   it("pocas propuestas suman: llegar entre los primeros importa; muchas restan", () => {

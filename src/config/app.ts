@@ -6,5 +6,5 @@ export const APP_PROFILE_ID = "local-profile";
 export const APP_PROFILE_NAME = "Perfil principal";
 
 
-/** Ficha de la extensión en la Chrome Web Store; null mientras Google la revisa (entonces se carga desde la carpeta). */
-export const URL_EXTENSION_TIENDA: string | null = null;
+/** Ficha de la extensión en la Chrome Web Store; con null, Autollenado explica cómo cargarla desde la carpeta. */
+export const URL_EXTENSION_TIENDA: string | null = "https://chromewebstore.google.com/detail/lieobaefblcocglmfcgnjlljifnmaclb";

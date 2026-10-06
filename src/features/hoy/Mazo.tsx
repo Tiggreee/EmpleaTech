@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRef, useState, type PointerEvent } from "react";
 import { ETIQUETA_RECOMENDACION } from "@/core/seguimiento/prioridad";
 import type { VacantePuntuada } from "@/core/vacantes/busqueda";
-import { MODALIDAD, TONO_RECOMENDACION, hace, nombreFuente, salario } from "@/features/vacantes/cliente";
+import { MODALIDAD, TONO_RECOMENDACION, avisoExtension, hace, nombreFuente, salario } from "@/features/vacantes/cliente";
 import { Bloques, Insignia, Puntaje, cx } from "@/ui/ui";
 
 /** Distancia (px) a partir de la cual soltar la tarjeta cuenta como decisión. */
@@ -100,6 +100,7 @@ export default function Mazo({ items, ahora, ocupado, onEnviada, onSaltar }: Pro
                 {sal && <Insignia tono="ok">{sal}</Insignia>}
                 {v.vacante.ats && <Insignia tono="cian">Formulario {v.vacante.ats}</Insignia>}
                 {proyecto && <Insignia tono="cian">Proyecto freelance</Insignia>}
+                <Insignia tono={avisoExtension(v.vacante).tono}>{avisoExtension(v.vacante).texto}</Insignia>
               </div>
 
               {r.total > 0 && (

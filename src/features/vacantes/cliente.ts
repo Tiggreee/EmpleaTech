@@ -1,8 +1,17 @@
+import { coberturaDe } from "@/core/autollenado/cobertura";
 import type { VacantePuntuada } from "@/core/vacantes/busqueda";
 import { INFO_FUENTES, type InfoFuente } from "@/core/vacantes/fuentes";
 import type { PreferenciasBusqueda } from "@/core/vacantes/preferencias";
-import type { FuenteId, SalarioVacante } from "@/core/vacantes/vacante";
+import type { FuenteId, SalarioVacante, Vacante } from "@/core/vacantes/vacante";
 import type { Tono } from "@/ui/ui";
+
+/** Antes de abrir el formulario: si la extensión lo llena, pone la propuesta o hay que llenarlo a mano. */
+export function avisoExtension(v: Pick<Vacante, "url" | "urlPostular">): { texto: string; tono: Tono } {
+  const c = coberturaDe(v.urlPostular ?? v.url);
+  if (c === "formulario") return { texto: "La extensión lo llena", tono: "cian" };
+  if (c === "propuesta") return { texto: "La extensión pone tu propuesta", tono: "cian" };
+  return { texto: "Se llena a mano", tono: "neutro" };
+}
 
 export type EstadoVacante = "nueva" | "guardada" | "descartada";
 export type Guardada = VacantePuntuada & { estado: EstadoVacante; encontradaEn: string };

@@ -84,6 +84,23 @@ function etiquetaCruda(el: HTMLElement): string {
   return (q && etiquetaDeContenedor(q, el)?.textContent) ?? "";
 }
 
+/** Texto de una zona para soltar archivos («Drag & drop file or Browse»): no dice qué archivo pide. */
+const ZONA_ARCHIVO = /^(drag|drop|arrastra|suelta|browse|choose|select|selecciona|upload|sube|attach|adjunta)\b/i;
+
+/**
+ * La pregunta de un campo de archivo cuya etiqueta es la de su zona para soltar: el texto del contenedor que ya dice
+ * qué archivo es («Include your resume»), sin pasar a uno que tenga otros campos.
+ */
+function preguntaDeArchivo(el: HTMLElement, generica: string): string {
+  let nodo: HTMLElement | null = el.parentElement;
+  for (let i = 0; nodo && i < 6; i++, nodo = nodo.parentElement) {
+    if (nodo.querySelectorAll("input:not([type='hidden']), select, textarea").length > 1) break;
+    const t = limpiar(texto(nodo).replace(generica, " "));
+    if (t && clasificar(t, {})) return t;
+  }
+  return generica;
+}
+
 function esRequerido(el: HTMLElement): boolean {
   return (el as HTMLInputElement).required || el.getAttribute("aria-required") === "true" || /[*✱]/.test(etiquetaCruda(el));
 }
@@ -138,7 +155,8 @@ export function escanear(raiz: ParentNode): Control[] {
       continue;
     }
 
-    const etiqueta = etiquetaDe(el);
+    const propia = etiquetaDe(el);
+    const etiqueta = tipoAttr === "file" && ZONA_ARCHIVO.test(propia) ? preguntaDeArchivo(el, propia) : propia;
     const tag = el.tagName.toLowerCase();
     const tipo: Tipo =
       tag === "select" ? "select"

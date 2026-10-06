@@ -7,7 +7,7 @@ import { ETIQUETA_RECOMENDACION } from "@/core/seguimiento/prioridad";
 import { SELLO_ITEMS, analizarOferta, crear, marcarPostulada } from "@/core/seguimiento/seguimiento";
 import { armarCola } from "@/core/vacantes/cola";
 import { esFuenteFreelance } from "@/core/vacantes/fuentes";
-import { MODALIDAD, TONO_RECOMENDACION, cambiarEstadoVacante, hace, nombreFuente, pedir, salario, type DatosVacantes, type Guardada } from "@/features/vacantes/cliente";
+import { MODALIDAD, TONO_RECOMENDACION, avisoExtension, cambiarEstadoVacante, hace, nombreFuente, pedir, salario, type DatosVacantes, type Guardada } from "@/features/vacantes/cliente";
 import { useDatosApp } from "@/storage/hooks";
 import { Aviso, Bloques, Boton, Encabezado, EnlaceBoton, Insignia, Puntaje, Vacio, type Tono } from "@/ui/ui";
 import Mazo from "./Mazo";
@@ -268,6 +268,7 @@ export default function Hoy() {
                         {sal && <Insignia tono="ok">{sal}</Insignia>}
                         {v.ats && <Insignia tono="cian">Formulario {v.ats}</Insignia>}
                         {proyecto && <Insignia tono="cian">Proyecto freelance{v.propuestas !== undefined ? ` · ${v.propuestas} propuestas` : ""}</Insignia>}
+                        <Insignia tono={avisoExtension(v).tono}>{avisoExtension(v).texto}</Insignia>
                       </div>
                     </div>
                     <div className="flex flex-col gap-2">

@@ -19,6 +19,9 @@ export function claveDePostulacion(url: string | undefined): string | undefined 
   const uuid = /\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\/|$)/i.exec(ruta)?.[1]?.toLowerCase();
   if (uuid && host.endsWith("lever.co")) return `lever:${uuid}`;
   if (uuid && host.endsWith("ashbyhq.com")) return `ashby:${uuid}`;
+  // Braintrust: la vacante es /jobs/123/ y su formulario /jobs/123/proposals/new/.
+  const bt = host.endsWith("usebraintrust.com") ? /\/jobs\/(\d+)/.exec(ruta)?.[1] : undefined;
+  if (bt) return `braintrust:${bt}`;
   return `url:${host}${ruta.replace(/\/(apply|application|aplicar)$/i, "")}`;
 }
 

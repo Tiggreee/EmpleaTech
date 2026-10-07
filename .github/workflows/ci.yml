@@ -22,6 +22,9 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run knip
+        # knip carga playwright.config.ts, que exige una base; esta URL nunca se conecta.
+        env:
+          E2E_DATABASE_URL: postgres://knip:knip@localhost:5432/knip
       - run: npm run typecheck
       - run: npm test
 

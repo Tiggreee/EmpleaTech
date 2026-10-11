@@ -29,10 +29,13 @@ export function aniosDelCv(p: PerfilJson, ahora: Date): number | undefined {
   return Math.floor(total / 12);
 }
 
-/** El primero que coincide gana: «intermedio alto» es intermedio; «professional working», avanzado. */
+/**
+ * El primero que coincide gana: «intermedio alto» es intermedio; «professional working», avanzado. C2 es el nivel más
+ * alto de dominio, no lengua materna: decir «nativo» por él afirmaría de más, así que cuenta como avanzado.
+ */
 const NIVELES: [RegExp, NivelIngles][] = [
-  [/\b(nativ[oa]|native|lengua materna|mother tongue|bilingue|bilingual|c2)\b/, "nativo"],
-  [/\b(avanzado|advanced|fluido|fluent|profesional|professional|c1)\b/, "avanzado"],
+  [/\b(nativ[oa]|native|lengua materna|mother tongue|bilingue|bilingual)\b/, "nativo"],
+  [/\b(avanzado|advanced|fluido|fluent|profesional|professional|c[12])\b/, "avanzado"],
   [/\b(intermedio|intermediate|conversacional|conversational|b[12])\b/, "intermedio"],
   [/\b(basico|basic|elemental|a[12])\b/, "basico"],
 ];

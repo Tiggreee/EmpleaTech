@@ -36,6 +36,7 @@ describe("lo que tu CV ya contesta", () => {
     expect(inglesDelCv(conIngles("fluent"))).toBe("avanzado");
     expect(inglesDelCv(conIngles("Professional working proficiency"))).toBe("avanzado");
     expect(inglesDelCv(conIngles("Bilingüe"))).toBe("nativo");
+    expect(inglesDelCv(conIngles("C2"))).toBe("avanzado");
     expect(inglesDelCv(conIngles("A2"))).toBe("basico");
     expect(inglesDelCv(conIngles())).toBeUndefined();
   });

@@ -69,17 +69,9 @@ export function palabrasDelPerfil(perfil: PerfilJson | undefined): string[] {
   return [...new Set(limpio.filter((t) => t.length >= 3))].slice(0, 3);
 }
 
-/** Años desde el primer puesto del CV hasta hoy (o hasta el último que terminó); sin fechas, undefined. */
-export function aniosDelPerfil(perfil: PerfilJson | undefined, ahora = new Date()): number | undefined {
-  const anio = (f: string | undefined) => (f && /^\d{4}/.test(f) ? Number(f.slice(0, 4)) : undefined);
-  const inicios = (perfil?.work ?? []).flatMap((w) => anio(w.startDate) ?? []);
-  if (!inicios.length) return undefined;
-  const fines = (perfil?.work ?? []).map((w) => anio(w.endDate) ?? ahora.getFullYear());
-  return Math.max(0, Math.max(...fines) - Math.min(...inicios));
-}
-
+/** `respuestas` ya completadas con tu CV (respuestasConElCv): los años de experiencia deciden si se ocultan los puestos de entrada. */
 export function preferenciasIniciales(perfil: PerfilJson | undefined, respuestas: Respuestas, empresas: Record<FuenteDeEmpresas, string[]>): PreferenciasBusqueda {
-  const anios = respuestas.aniosExperiencia ?? aniosDelPerfil(perfil);
+  const anios = respuestas.aniosExperiencia;
   return {
     fuentes: FUENTES_INICIALES,
     palabras: palabrasDelPerfil(perfil),

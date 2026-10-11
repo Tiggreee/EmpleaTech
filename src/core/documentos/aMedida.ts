@@ -54,34 +54,6 @@ export function perfilATexto(p: PerfilJson): string {
     .join("\n");
 }
 
-function aMes(fecha: string): number {
-  const [a, m] = fecha.split("-").map(Number);
-  return a * 12 + ((m || 1) - 1);
-}
-
-/** Años de experiencia: los que declaraste en tus respuestas o, si no, la suma de tus puestos (sin contar dos veces los que se traslapan). */
-export function aniosDeExperiencia(p: PerfilJson, respuestas: Respuestas, ahora: Date): number | undefined {
-  if (respuestas.aniosExperiencia !== undefined) return respuestas.aniosExperiencia;
-  const hoy = ahora.getUTCFullYear() * 12 + ahora.getUTCMonth();
-  const rangos = p.work
-    .filter((w) => w.startDate)
-    .map((w) => [aMes(w.startDate as string), w.endDate ? aMes(w.endDate) + (w.endDate.length === 4 ? 11 : 0) : hoy] as const)
-    .filter(([a, b]) => b >= a)
-    .sort((x, y) => x[0] - y[0]);
-  if (!rangos.length) return undefined;
-  let total = 0;
-  let [ini, fin] = rangos[0];
-  for (const [a, b] of rangos.slice(1)) {
-    if (a <= fin) fin = Math.max(fin, b);
-    else {
-      total += fin - ini;
-      [ini, fin] = [a, b];
-    }
-  }
-  total += fin - ini;
-  return Math.floor(total / 12);
-}
-
 const PALABRA = /[\p{L}\p{N}][\p{L}\p{N}+#.-]{4,}/gu;
 
 /** Qué tan relacionado está un logro con la vacante: habilidades que menciona (con su peso) y palabras en común. */

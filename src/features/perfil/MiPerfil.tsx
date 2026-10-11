@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { respuestasConElCv } from "@/core/perfil/delCv";
 import type { PerfilJson } from "@/core/perfil/estructurado";
 import { cvActivo, editarEstructurado, estructuradoDe, guardarRespuestas, releerEstructurado } from "@/core/perfil/perfil";
 import {
@@ -66,10 +67,12 @@ function Pregunta({ titulo, children }: { titulo: string; children: ReactNode })
   );
 }
 
-function FormRespuestas({ inicial, onGuardar }: { inicial: Respuestas; onGuardar: (r: Respuestas) => Promise<void> }) {
+function FormRespuestas({ inicial, cv, onGuardar }: { inicial: Respuestas; cv: PerfilJson | undefined; onGuardar: (r: Respuestas) => Promise<void> }) {
   const [r, setR] = useState<Respuestas>(inicial);
   const [guardando, setGuardando] = useState(false);
-  const faltan = pendientes(r);
+  // Lo que tu CV ya contesta (años, inglés) cuenta como listo; si lo escribes aquí, manda lo tuyo.
+  const conCv = respuestasConElCv(r, cv, new Date());
+  const faltan = pendientes(conCv);
   const total = Object.keys(TEXTO_PREGUNTA).length;
   const cambiar = (c: Partial<Respuestas>) => setR({ ...r, ...c });
   const salario = r.salario ?? { monto: 0, moneda: "MXN" as Moneda, periodo: "mes" as Periodo };
@@ -162,13 +165,17 @@ function FormRespuestas({ inicial, onGuardar }: { inicial: Respuestas; onGuardar
           step={0.5}
           aria-label="Años de experiencia"
           value={r.aniosExperiencia ?? ""}
+          placeholder={conCv.aniosExperiencia !== undefined ? String(conCv.aniosExperiencia) : undefined}
           onChange={(e) => cambiar({ aniosExperiencia: e.target.value === "" ? undefined : Number(e.target.value) })}
         />
+        {r.aniosExperiencia === undefined && conCv.aniosExperiencia !== undefined && (
+          <p className="mt-1 text-xs text-tenue">Según tu CV: {conCv.aniosExperiencia}. Si no lo cambias, usamos ese.</p>
+        )}
       </Pregunta>
 
       <Pregunta titulo={TEXTO_PREGUNTA.nivelIngles}>
         <select className="campo max-w-60" aria-label="Nivel de inglés" value={r.nivelIngles ?? ""} onChange={(e) => cambiar({ nivelIngles: (e.target.value || undefined) as NivelIngles | undefined })}>
-          <option value="">Elige…</option>
+          <option value="">{!r.nivelIngles && conCv.nivelIngles ? `Según tu CV: ${ETIQUETAS.ingles[conCv.nivelIngles]}` : "Elige…"}</option>
           {NIVELES_INGLES.map((n) => <option key={n} value={n}>{ETIQUETAS.ingles[n]}</option>)}
         </select>
       </Pregunta>
@@ -212,7 +219,8 @@ export default function MiPerfil() {
   const { perfil, guardarEstado, cargando } = useDatosApp();
   const [msg, setMsg] = useState<{ tono: "ok" | "riesgo"; texto: string } | null>(null);
   const activo = cvActivo(perfil);
-  const faltanRespuestas = pendientes(perfil.respuestas).length;
+  const cv = activo ? estructuradoDe(activo) : undefined;
+  const faltanRespuestas = pendientes(respuestasConElCv(perfil.respuestas, cv, new Date())).length;
 
   async function guardar(fn: () => Promise<unknown>, ok: string) {
     try {
@@ -257,6 +265,7 @@ export default function MiPerfil() {
           <FormRespuestas
             key={cargando ? "cargando" : "listo"}
             inicial={perfil.respuestas}
+            cv={cv}
             onGuardar={(r) => guardar(() => guardarEstado({ perfil: guardarRespuestas(perfil, r) }), "Respuestas guardadas.")}
           />
         </Tarjeta>

@@ -1,11 +1,12 @@
 import { APP_PROFILE_ID } from "@/config/app";
-import { aniosDeExperiencia, perfilATexto, prepararDocumentos, type IdiomaDoc } from "@/core/documentos/aMedida";
+import { perfilATexto, prepararDocumentos, type IdiomaDoc } from "@/core/documentos/aMedida";
 import { cvATexto } from "@/core/documentos/formato";
 import { detectarIdioma, prep } from "@/core/analisis/texto";
 import type { DatosAutollenado } from "@/core/autollenado/campos";
 import { puestoYEmpresa } from "@/core/autollenado/envio";
 import { estudioMasAlto } from "@/core/autollenado/estudios";
 import { claveDePostulacion, clavesDeVacante } from "@/core/autollenado/url";
+import { respuestasConElCv } from "@/core/perfil/delCv";
 import type { PerfilJson } from "@/core/perfil/estructurado";
 import { cvActivo, estructuradoDe } from "@/core/perfil/perfil";
 import { SELLO_ITEMS, analizarOferta, crear, marcarPostulada } from "@/core/seguimiento/seguimiento";
@@ -82,7 +83,6 @@ function datosDelPerfil(p: PerfilJson, extra: Pick<DatosAutollenado, "respuestas
     portafolio: b.url,
     empresaActual: actual?.name,
     puestoActual: actual?.position,
-    aniosExperiencia: aniosDeExperiencia(p, extra.respuestas, ahora),
     estudios: estudioMasAlto(p.education, ahora),
     ...extra,
   };
@@ -109,7 +109,8 @@ export async function datosParaFormulario(url: string, ahora = new Date()): Prom
   const nombre = base.basics.name;
   const [pdfCv, pdfCarta] = await Promise.all([cvAPdf(doc, idioma), carta ? cartaAPdf(carta, nombre) : Promise.resolve(undefined)]);
   return {
-    datos: datosDelPerfil(base, { respuestas: perfil.respuestas, carta, cvTexto: cvATexto(doc, idioma), aprendidas }, ahora),
+    // El formulario sí toma de tu CV lo que no contestaste (años, inglés, país); la carta de arriba, solo lo declarado.
+    datos: datosDelPerfil(base, { respuestas: respuestasConElCv(perfil.respuestas, base, ahora), carta, cvTexto: cvATexto(doc, idioma), aprendidas }, ahora),
     ...(vacante ? { vacante: { id: vacante.id, titulo: vacante.titulo, empresa: vacante.empresa } } : {}),
     archivos: {
       cv: { nombre: nombreArchivo("CV", nombre), tipo: "application/pdf", base64: Buffer.from(pdfCv).toString("base64") },

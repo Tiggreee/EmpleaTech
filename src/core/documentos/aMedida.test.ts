@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { leerPerfil } from "../perfil/estructurado";
 import { sanitizarRespuestas } from "../perfil/respuestas";
-import { MAX_PROPUESTA, aniosDeExperiencia, prepararDocumentos } from "./aMedida";
+import { MAX_PROPUESTA, prepararDocumentos } from "./aMedida";
 import { cvATexto, fechaLegible, rangoFechas } from "./formato";
 
 const AHORA = new Date("2026-09-28T12:00:00Z");
@@ -75,11 +75,6 @@ describe("documentos a la medida", () => {
     expect(d.carta).toContain("I can start in two weeks.");
     expect(d.carta).not.toMatch(/Diseñé|cobros/);
     expect(d.cv.basics.summary).toMatch(/with 8 years of experience in/);
-  });
-
-  it("años de experiencia sin contar dos veces los puestos que se traslapan", () => {
-    expect(aniosDeExperiencia(perfil, sanitizarRespuestas({}), AHORA)).toBe(8);
-    expect(aniosDeExperiencia(perfil, sanitizarRespuestas({ aniosExperiencia: 5 }), AHORA)).toBe(5);
   });
 
   it("si no declaraste tus años, ningún documento los afirma (sumar puestos de otras áreas sería falso)", () => {

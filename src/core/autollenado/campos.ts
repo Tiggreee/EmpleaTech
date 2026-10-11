@@ -56,7 +56,6 @@ export interface DatosAutollenado {
   portafolio?: string;
   empresaActual?: string;
   puestoActual?: string;
-  aniosExperiencia?: number;
   /** Tu estudio terminado de mayor nivel (un bootcamp no cuenta como título). */
   estudios?: EstudiosForm;
   respuestas: Respuestas;
@@ -228,10 +227,8 @@ export function valorTexto(campo: Campo, d: DatosAutollenado, idioma: IdiomaForm
     case "fechaInicio":
       if (!r.disponibilidad) return undefined;
       return r.disponibilidad === "fecha" ? fechaDeInicio(r, hoy) : DISPONIBLE[idioma][r.disponibilidad];
-    case "aniosExperiencia": {
-      const n = r.aniosExperiencia ?? d.aniosExperiencia;
-      return n === undefined ? undefined : String(n);
-    }
+    case "aniosExperiencia":
+      return r.aniosExperiencia === undefined ? undefined : String(r.aniosExperiencia);
     case "ingles":
       return r.nivelIngles ? (idioma === "es" ? ETIQUETAS.ingles[r.nivelIngles] : INGLES_EN[r.nivelIngles]) : undefined;
     case "carta":
@@ -314,7 +311,7 @@ export function elegirOpcion(campo: Campo | null, d: DatosAutollenado, etiqueta:
       return opciones.findIndex((o) => nombres.includes(normalizarEtiqueta(o)) || o.trim().toUpperCase() === d.paisResidencia);
     }
     case "aniosExperiencia": {
-      const n = r.aniosExperiencia ?? d.aniosExperiencia;
+      const n = r.aniosExperiencia;
       if (n === undefined) return -1;
       // Rangos como «0-1», «2 - 4 years», «5+», «More than 10».
       return opciones.findIndex((o) => {

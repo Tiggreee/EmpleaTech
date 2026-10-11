@@ -1,7 +1,10 @@
 import type { PoolClient } from "pg";
 import { APP_PROFILE_ID, APP_PROFILE_NAME } from "@/config/app";
 import { sanitizarResumen } from "@/core/analisis/resumen";
+import { respuestasConElCv } from "@/core/perfil/delCv";
+import type { PerfilJson } from "@/core/perfil/estructurado";
 import { cvActivo, estructuradoDe } from "@/core/perfil/perfil";
+import type { Respuestas } from "@/core/perfil/respuestas";
 import {
   buscarVacantes,
   huellaPuntaje,
@@ -42,6 +45,14 @@ export class ErrorVacantes extends Error {
   }
 }
 
+/**
+ * Con qué se ordenan y filtran tus vacantes: tus respuestas con lo que tu CV ya dice (años, inglés) y, si no declaraste
+ * países, el de tu CV.
+ */
+function respuestasParaOrdenar(respuestas: Respuestas, cv: PerfilJson | undefined, ahora: Date): Respuestas {
+  return respuestasParaPuntuar(respuestasConElCv(respuestas, cv, ahora), cv?.basics.location?.countryCode);
+}
+
 async function asegurarPerfil(client: PoolClient): Promise<void> {
   await client.query(`insert into profiles (id, display_name) values ($1, $2) on conflict (id) do nothing`, [APP_PROFILE_ID, APP_PROFILE_NAME]);
 }
@@ -52,7 +63,8 @@ async function asegurarPerfil(client: PoolClient): Promise<void> {
 export async function leerPreferencias(): Promise<PreferenciasBusqueda> {
   const [{ perfil }, fila] = await Promise.all([loadState(), getPool().query(`select busqueda_json from profiles where id = $1`, [APP_PROFILE_ID])]);
   const activo = cvActivo(perfil);
-  const base = preferenciasIniciales(activo ? estructuradoDe(activo) : undefined, perfil.respuestas, EMPRESAS_INICIALES);
+  const cv = activo ? estructuradoDe(activo) : undefined;
+  const base = preferenciasIniciales(cv, respuestasConElCv(perfil.respuestas, cv, new Date()), EMPRESAS_INICIALES);
   const guardadas = fila.rows[0]?.busqueda_json;
   return guardadas && Object.keys(guardadas).length ? sanitizarPreferencias(guardadas, base) : base;
 }
@@ -84,7 +96,7 @@ export async function repuntuarSiCambio(ahora = new Date()): Promise<number> {
   const cv = cvActivo(perfil);
   if (!cv) return 0;
   const aprendizaje = await calcularAprendizaje(ahora);
-  const respuestas = respuestasParaPuntuar(perfil.respuestas, estructuradoDe(cv).basics.location?.countryCode);
+  const respuestas = respuestasParaOrdenar(perfil.respuestas, estructuradoDe(cv), ahora);
   const huella = huellaPuntaje(cv, respuestas, huellaAprendizaje(aprendizaje));
   const { rows } = await getPool().query(
     `select id, datos_json from vacantes where profile_id = $1 and estado = 'nueva' and huella is distinct from $2 limit 500`,
@@ -114,7 +126,7 @@ type FiltroLista = { paises: string[]; ocultarEntrada: boolean };
 async function filtroDeLista(): Promise<FiltroLista> {
   const [{ perfil }, prefs] = await Promise.all([loadState(), leerPreferencias()]);
   const cv = cvActivo(perfil);
-  const paises = respuestasParaPuntuar(perfil.respuestas, cv ? estructuradoDe(cv).basics.location?.countryCode : undefined).paisesAutorizado;
+  const paises = respuestasParaOrdenar(perfil.respuestas, cv ? estructuradoDe(cv) : undefined, new Date()).paisesAutorizado;
   return { paises, ocultarEntrada: prefs.ocultarEntrada };
 }
 
@@ -162,7 +174,7 @@ export async function oportunidadesDeMejora(ahora = new Date()): Promise<Oportun
   const empleos = items.filter((i) => i.vacante.tipo !== "proyecto" && i.prioridad.valor !== null);
   const valores = empleos.map((i) => i.prioridad.valor as number);
   return {
-    oportunidades: oportunidades(items, cv.texto, respuestasParaPuntuar(perfil.respuestas, estructuradoDe(cv).basics.location?.countryCode), ahora),
+    oportunidades: oportunidades(items, cv.texto, respuestasParaOrdenar(perfil.respuestas, estructuradoDe(cv), ahora), ahora),
     empleos: empleos.length,
     sobre90: valores.filter((v) => v >= 90).length,
     mejor: valores.length ? Math.max(...valores) : null,
@@ -261,7 +273,7 @@ export async function buscarAhora(ahora = new Date()): Promise<ResultadoBusqueda
   const ultimas = Object.fromEntries((await consultasPorFuente()).filter((c) => c.estado === "ok").map((c) => [c.fuente, new Date(c.ultimaEn)]));
   const ctx = process.env.EMPLEATECH_FUENTES_FALSAS === "1" ? contextoFalso(ahora) : contextoReal(ahora);
   // Sin países declarados se busca con el de tu CV: traer vacantes que piden vivir en otro país solo llena la lista.
-  const paraPuntuar = respuestasParaPuntuar(perfil.respuestas, estructuradoDe(cv).basics.location?.countryCode);
+  const paraPuntuar = respuestasParaOrdenar(perfil.respuestas, estructuradoDe(cv), ahora);
   // Se busca alrededor de tus herramientas, no solo de los títulos que escribiste; cada hora rota cuáles van primero.
   const palabras = palabrasDeLaBusqueda(prefs.palabras, terminosDelCv(cv.texto), ahora.getTime() / 3_600_000);
   const { vacantes, reporte } = await buscarVacantes(

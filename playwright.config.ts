@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { urlBaseE2e } from "./e2e/preparar-base";
+import { urlBaseE2eSiHay } from "./e2e/preparar-base";
 
 const PUERTO = 3200;
 
@@ -23,6 +23,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
     // Fuentes de vacantes simuladas: las pruebas no dependen de internet ni gastan el límite de las plataformas.
-    env: { DATABASE_URL: urlBaseE2e(), EMPLEATECH_FUENTES_FALSAS: "1" },
+    // Sin base configurada queda vacía (nunca cae en la de tu .env.local) y preparar-base detiene las pruebas.
+    env: { DATABASE_URL: urlBaseE2eSiHay() ?? "", EMPLEATECH_FUENTES_FALSAS: "1" },
   },
 });

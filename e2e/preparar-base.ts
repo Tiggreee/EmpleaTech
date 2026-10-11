@@ -22,17 +22,25 @@ function leerDotEnv(): Record<string, string> {
 
 /**
  * Base que usan las pruebas e2e. En CI es la base desechable del job; en tu máquina es una copia aparte
- * (<tu_base>_e2e) para que las pruebas, que borran datos, nunca toquen los tuyos.
+ * (<tu_base>_e2e) para que las pruebas, que borran datos, nunca toquen los tuyos. Sin ninguna base configurada
+ * devuelve undefined: leer la config de Playwright (knip, el editor) no la necesita; correr las pruebas sí.
  */
-export function urlBaseE2e(): string {
+export function urlBaseE2eSiHay(): string | undefined {
   if (process.env.E2E_DATABASE_URL) return process.env.E2E_DATABASE_URL;
   const base = process.env.DATABASE_URL ?? leerDotEnv().DATABASE_URL;
-  if (!base) throw new Error("Falta DATABASE_URL (o E2E_DATABASE_URL) para las pruebas e2e.");
+  if (!base) return undefined;
   if (process.env.CI) return base;
   const u = new URL(base);
   const nombre = u.pathname.replace(/^\//, "") || "empleatech";
   u.pathname = `/${nombre.endsWith("_e2e") ? nombre : `${nombre}_e2e`}`;
   return u.toString();
+}
+
+/** La base de pruebas, para cuando de verdad se van a correr: sin ella se detiene con un mensaje claro. */
+export function urlBaseE2e(): string {
+  const url = urlBaseE2eSiHay();
+  if (!url) throw new Error("Falta DATABASE_URL (o E2E_DATABASE_URL) para las pruebas e2e.");
+  return url;
 }
 
 export default async function prepararBase(): Promise<void> {

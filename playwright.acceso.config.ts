@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { urlBaseE2e } from "./e2e/preparar-base";
+import { urlBaseE2eSiHay } from "./e2e/preparar-base";
 
 const PUERTO = 3300;
 
@@ -26,7 +26,8 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
     env: {
-      DATABASE_URL: urlBaseE2e(),
+      // Igual que en playwright.config.ts: leer esta config no exige base; correr las pruebas sí.
+      DATABASE_URL: urlBaseE2eSiHay() ?? "",
       EMPLEATECH_FUENTES_FALSAS: "1",
       EMPLEATECH_DIST_DIR: ".next-acceso",
       EMPLEATECH_AUTH: "1",

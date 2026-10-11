@@ -92,7 +92,10 @@ describe("secreto cifrado", () => {
     expect(descifrar(c, S)?.equals(SECRETO_RFC)).toBe(true);
     expect(descifrar(c, `${S}-otro`)).toBeNull();
     const [v, iv, tag, datos] = c.split(".");
-    expect(descifrar([v, iv, tag, `${datos.slice(0, -2)}AA`].join("."), S)).toBeNull();
+    // Voltear un bit siempre altera los datos (poner «AA» al final no, si ya terminaban así: 1 de cada ~1000 vueltas).
+    const alterado = Buffer.from(datos, "base64url");
+    alterado[0] ^= 1;
+    expect(descifrar([v, iv, tag, alterado.toString("base64url")].join("."), S)).toBeNull();
     expect(descifrar("basura", S)).toBeNull();
   });
 });

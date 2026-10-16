@@ -8,7 +8,7 @@ correcciones de seguridad.
 ## Cómo reportar una vulnerabilidad
 
 **No abras un issue público.** Usa el reporte privado de GitHub:
-[Report a vulnerability](https://github.com/Tiggreee/EmpleaTech/security/advisories/new) (pestaña «Security» → «Report
+[Report a vulnerability](https://github.com/Tiggreee/empleatechsite/security/advisories/new) (pestaña «Security» → «Report
 a vulnerability»). Solo tú y el mantenedor ven el reporte.
 
 Incluye, si puedes:
